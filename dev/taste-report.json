@@ -1,0 +1,2284 @@
+{
+  "light orange 360x800 login": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "light orange 360x800 dashboard": {
+    "fails": [],
+    "kpiRows": [
+      [
+        {
+          "off": 38,
+          "fs": "22px",
+          "clip": false
+        },
+        {
+          "off": 38,
+          "fs": "22px",
+          "clip": false
+        }
+      ],
+      [
+        {
+          "off": 38,
+          "fs": "22px",
+          "clip": false
+        },
+        {
+          "off": 38,
+          "fs": "22px",
+          "clip": false
+        }
+      ]
+    ]
+  },
+  "light orange 360x800 kasir": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "light orange 360x800 product": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "light orange 360x800 kasir+keranjang": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "light orange 360x800 cart": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "light orange 360x800 payment": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "light orange 360x800 receipt": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "light orange 360x800 orders": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "light orange 360x800 products": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "light orange 360x800 variants": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "light orange 360x800 prices": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "light orange 360x800 stock": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "light orange 360x800 production": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "light orange 360x800 expenses": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "light orange 360x800 expenseForm": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "light orange 360x800 reportSales": {
+    "fails": [],
+    "kpiRows": [
+      [
+        {
+          "off": 38,
+          "fs": "19.9px",
+          "clip": false
+        },
+        {
+          "off": 38,
+          "fs": "19.9px",
+          "clip": false
+        }
+      ],
+      [
+        {
+          "off": 38,
+          "fs": "19.9px",
+          "clip": false
+        },
+        {
+          "off": 38,
+          "fs": "19.9px",
+          "clip": false
+        }
+      ]
+    ]
+  },
+  "light orange 360x800 reportProducts": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "light orange 360x800 reportFinance": {
+    "fails": [],
+    "kpiRows": [
+      [
+        {
+          "off": 38,
+          "fs": "19.9px",
+          "clip": false
+        },
+        {
+          "off": 38,
+          "fs": "19.9px",
+          "clip": false
+        }
+      ],
+      [
+        {
+          "off": 38,
+          "fs": "19.9px",
+          "clip": false
+        },
+        {
+          "off": 38,
+          "fs": "19.9px",
+          "clip": false
+        }
+      ]
+    ]
+  },
+  "light orange 360x800 settings": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "light orange 360x800 more": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "light orange 360x800 order": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "light orange 390x844 login": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "light orange 390x844 dashboard": {
+    "fails": [],
+    "kpiRows": [
+      [
+        {
+          "off": 38,
+          "fs": "22px",
+          "clip": false
+        },
+        {
+          "off": 38,
+          "fs": "22px",
+          "clip": false
+        }
+      ],
+      [
+        {
+          "off": 38,
+          "fs": "22px",
+          "clip": false
+        },
+        {
+          "off": 38,
+          "fs": "22px",
+          "clip": false
+        }
+      ]
+    ]
+  },
+  "light orange 390x844 kasir": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "light orange 390x844 product": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "light orange 390x844 kasir+keranjang": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "light orange 390x844 cart": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "light orange 390x844 payment": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "light orange 390x844 receipt": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "light orange 390x844 orders": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "light orange 390x844 products": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "light orange 390x844 variants": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "light orange 390x844 prices": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "light orange 390x844 stock": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "light orange 390x844 production": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "light orange 390x844 expenses": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "light orange 390x844 expenseForm": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "light orange 390x844 reportSales": {
+    "fails": [],
+    "kpiRows": [
+      [
+        {
+          "off": 38,
+          "fs": "22px",
+          "clip": false
+        },
+        {
+          "off": 38,
+          "fs": "22px",
+          "clip": false
+        }
+      ],
+      [
+        {
+          "off": 38,
+          "fs": "22px",
+          "clip": false
+        },
+        {
+          "off": 38,
+          "fs": "22px",
+          "clip": false
+        }
+      ]
+    ]
+  },
+  "light orange 390x844 reportProducts": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "light orange 390x844 reportFinance": {
+    "fails": [],
+    "kpiRows": [
+      [
+        {
+          "off": 38,
+          "fs": "22px",
+          "clip": false
+        },
+        {
+          "off": 38,
+          "fs": "22px",
+          "clip": false
+        }
+      ],
+      [
+        {
+          "off": 38,
+          "fs": "22px",
+          "clip": false
+        },
+        {
+          "off": 38,
+          "fs": "22px",
+          "clip": false
+        }
+      ]
+    ]
+  },
+  "light orange 390x844 settings": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "light orange 390x844 more": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "light orange 390x844 order": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "light orange 800x1280 login": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "light orange 800x1280 dashboard": {
+    "fails": [],
+    "kpiRows": [
+      [
+        {
+          "off": 38,
+          "fs": "22px",
+          "clip": false
+        },
+        {
+          "off": 38,
+          "fs": "22px",
+          "clip": false
+        }
+      ],
+      [
+        {
+          "off": 38,
+          "fs": "22px",
+          "clip": false
+        },
+        {
+          "off": 38,
+          "fs": "22px",
+          "clip": false
+        }
+      ]
+    ]
+  },
+  "light orange 800x1280 kasir": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "light orange 800x1280 product": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "light orange 800x1280 kasir+keranjang": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "light orange 800x1280 cart": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "light orange 800x1280 payment": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "light orange 800x1280 receipt": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "light orange 800x1280 orders": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "light orange 800x1280 products": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "light orange 800x1280 variants": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "light orange 800x1280 prices": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "light orange 800x1280 stock": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "light orange 800x1280 production": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "light orange 800x1280 expenses": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "light orange 800x1280 expenseForm": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "light orange 800x1280 reportSales": {
+    "fails": [],
+    "kpiRows": [
+      [
+        {
+          "off": 38,
+          "fs": "22px",
+          "clip": false
+        },
+        {
+          "off": 38,
+          "fs": "22px",
+          "clip": false
+        }
+      ],
+      [
+        {
+          "off": 38,
+          "fs": "22px",
+          "clip": false
+        },
+        {
+          "off": 38,
+          "fs": "22px",
+          "clip": false
+        }
+      ]
+    ]
+  },
+  "light orange 800x1280 reportProducts": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "light orange 800x1280 reportFinance": {
+    "fails": [],
+    "kpiRows": [
+      [
+        {
+          "off": 38,
+          "fs": "22px",
+          "clip": false
+        },
+        {
+          "off": 38,
+          "fs": "22px",
+          "clip": false
+        }
+      ],
+      [
+        {
+          "off": 38,
+          "fs": "22px",
+          "clip": false
+        },
+        {
+          "off": 38,
+          "fs": "22px",
+          "clip": false
+        }
+      ]
+    ]
+  },
+  "light orange 800x1280 settings": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "light orange 800x1280 more": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "light orange 800x1280 order": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "light green 390x844 login": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "light green 390x844 dashboard": {
+    "fails": [],
+    "kpiRows": [
+      [
+        {
+          "off": 38,
+          "fs": "22px",
+          "clip": false
+        },
+        {
+          "off": 38,
+          "fs": "22px",
+          "clip": false
+        }
+      ],
+      [
+        {
+          "off": 38,
+          "fs": "22px",
+          "clip": false
+        },
+        {
+          "off": 38,
+          "fs": "22px",
+          "clip": false
+        }
+      ]
+    ]
+  },
+  "light green 390x844 kasir": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "light green 390x844 product": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "light green 390x844 kasir+keranjang": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "light green 390x844 cart": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "light green 390x844 payment": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "light green 390x844 receipt": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "light green 390x844 orders": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "light green 390x844 products": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "light green 390x844 variants": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "light green 390x844 prices": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "light green 390x844 stock": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "light green 390x844 production": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "light green 390x844 expenses": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "light green 390x844 expenseForm": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "light green 390x844 reportSales": {
+    "fails": [],
+    "kpiRows": [
+      [
+        {
+          "off": 38,
+          "fs": "22px",
+          "clip": false
+        },
+        {
+          "off": 38,
+          "fs": "22px",
+          "clip": false
+        }
+      ],
+      [
+        {
+          "off": 38,
+          "fs": "22px",
+          "clip": false
+        },
+        {
+          "off": 38,
+          "fs": "22px",
+          "clip": false
+        }
+      ]
+    ]
+  },
+  "light green 390x844 reportProducts": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "light green 390x844 reportFinance": {
+    "fails": [],
+    "kpiRows": [
+      [
+        {
+          "off": 38,
+          "fs": "22px",
+          "clip": false
+        },
+        {
+          "off": 38,
+          "fs": "22px",
+          "clip": false
+        }
+      ],
+      [
+        {
+          "off": 38,
+          "fs": "22px",
+          "clip": false
+        },
+        {
+          "off": 38,
+          "fs": "22px",
+          "clip": false
+        }
+      ]
+    ]
+  },
+  "light green 390x844 settings": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "light green 390x844 more": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "light green 390x844 order": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "light blue 390x844 login": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "light blue 390x844 dashboard": {
+    "fails": [],
+    "kpiRows": [
+      [
+        {
+          "off": 38,
+          "fs": "22px",
+          "clip": false
+        },
+        {
+          "off": 38,
+          "fs": "22px",
+          "clip": false
+        }
+      ],
+      [
+        {
+          "off": 38,
+          "fs": "22px",
+          "clip": false
+        },
+        {
+          "off": 38,
+          "fs": "22px",
+          "clip": false
+        }
+      ]
+    ]
+  },
+  "light blue 390x844 kasir": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "light blue 390x844 product": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "light blue 390x844 kasir+keranjang": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "light blue 390x844 cart": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "light blue 390x844 payment": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "light blue 390x844 receipt": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "light blue 390x844 orders": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "light blue 390x844 products": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "light blue 390x844 variants": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "light blue 390x844 prices": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "light blue 390x844 stock": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "light blue 390x844 production": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "light blue 390x844 expenses": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "light blue 390x844 expenseForm": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "light blue 390x844 reportSales": {
+    "fails": [],
+    "kpiRows": [
+      [
+        {
+          "off": 38,
+          "fs": "22px",
+          "clip": false
+        },
+        {
+          "off": 38,
+          "fs": "22px",
+          "clip": false
+        }
+      ],
+      [
+        {
+          "off": 38,
+          "fs": "22px",
+          "clip": false
+        },
+        {
+          "off": 38,
+          "fs": "22px",
+          "clip": false
+        }
+      ]
+    ]
+  },
+  "light blue 390x844 reportProducts": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "light blue 390x844 reportFinance": {
+    "fails": [],
+    "kpiRows": [
+      [
+        {
+          "off": 38,
+          "fs": "22px",
+          "clip": false
+        },
+        {
+          "off": 38,
+          "fs": "22px",
+          "clip": false
+        }
+      ],
+      [
+        {
+          "off": 38,
+          "fs": "22px",
+          "clip": false
+        },
+        {
+          "off": 38,
+          "fs": "22px",
+          "clip": false
+        }
+      ]
+    ]
+  },
+  "light blue 390x844 settings": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "light blue 390x844 more": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "light blue 390x844 order": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "light maroon 390x844 login": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "light maroon 390x844 dashboard": {
+    "fails": [],
+    "kpiRows": [
+      [
+        {
+          "off": 38,
+          "fs": "22px",
+          "clip": false
+        },
+        {
+          "off": 38,
+          "fs": "22px",
+          "clip": false
+        }
+      ],
+      [
+        {
+          "off": 38,
+          "fs": "22px",
+          "clip": false
+        },
+        {
+          "off": 38,
+          "fs": "22px",
+          "clip": false
+        }
+      ]
+    ]
+  },
+  "light maroon 390x844 kasir": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "light maroon 390x844 product": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "light maroon 390x844 kasir+keranjang": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "light maroon 390x844 cart": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "light maroon 390x844 payment": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "light maroon 390x844 receipt": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "light maroon 390x844 orders": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "light maroon 390x844 products": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "light maroon 390x844 variants": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "light maroon 390x844 prices": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "light maroon 390x844 stock": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "light maroon 390x844 production": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "light maroon 390x844 expenses": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "light maroon 390x844 expenseForm": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "light maroon 390x844 reportSales": {
+    "fails": [],
+    "kpiRows": [
+      [
+        {
+          "off": 38,
+          "fs": "22px",
+          "clip": false
+        },
+        {
+          "off": 38,
+          "fs": "22px",
+          "clip": false
+        }
+      ],
+      [
+        {
+          "off": 38,
+          "fs": "22px",
+          "clip": false
+        },
+        {
+          "off": 38,
+          "fs": "22px",
+          "clip": false
+        }
+      ]
+    ]
+  },
+  "light maroon 390x844 reportProducts": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "light maroon 390x844 reportFinance": {
+    "fails": [],
+    "kpiRows": [
+      [
+        {
+          "off": 38,
+          "fs": "22px",
+          "clip": false
+        },
+        {
+          "off": 38,
+          "fs": "22px",
+          "clip": false
+        }
+      ],
+      [
+        {
+          "off": 38,
+          "fs": "22px",
+          "clip": false
+        },
+        {
+          "off": 38,
+          "fs": "22px",
+          "clip": false
+        }
+      ]
+    ]
+  },
+  "light maroon 390x844 settings": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "light maroon 390x844 more": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "light maroon 390x844 order": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "light brown 390x844 login": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "light brown 390x844 dashboard": {
+    "fails": [],
+    "kpiRows": [
+      [
+        {
+          "off": 38,
+          "fs": "22px",
+          "clip": false
+        },
+        {
+          "off": 38,
+          "fs": "22px",
+          "clip": false
+        }
+      ],
+      [
+        {
+          "off": 38,
+          "fs": "22px",
+          "clip": false
+        },
+        {
+          "off": 38,
+          "fs": "22px",
+          "clip": false
+        }
+      ]
+    ]
+  },
+  "light brown 390x844 kasir": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "light brown 390x844 product": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "light brown 390x844 kasir+keranjang": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "light brown 390x844 cart": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "light brown 390x844 payment": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "light brown 390x844 receipt": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "light brown 390x844 orders": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "light brown 390x844 products": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "light brown 390x844 variants": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "light brown 390x844 prices": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "light brown 390x844 stock": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "light brown 390x844 production": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "light brown 390x844 expenses": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "light brown 390x844 expenseForm": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "light brown 390x844 reportSales": {
+    "fails": [],
+    "kpiRows": [
+      [
+        {
+          "off": 38,
+          "fs": "22px",
+          "clip": false
+        },
+        {
+          "off": 38,
+          "fs": "22px",
+          "clip": false
+        }
+      ],
+      [
+        {
+          "off": 38,
+          "fs": "22px",
+          "clip": false
+        },
+        {
+          "off": 38,
+          "fs": "22px",
+          "clip": false
+        }
+      ]
+    ]
+  },
+  "light brown 390x844 reportProducts": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "light brown 390x844 reportFinance": {
+    "fails": [],
+    "kpiRows": [
+      [
+        {
+          "off": 38,
+          "fs": "22px",
+          "clip": false
+        },
+        {
+          "off": 38,
+          "fs": "22px",
+          "clip": false
+        }
+      ],
+      [
+        {
+          "off": 38,
+          "fs": "22px",
+          "clip": false
+        },
+        {
+          "off": 38,
+          "fs": "22px",
+          "clip": false
+        }
+      ]
+    ]
+  },
+  "light brown 390x844 settings": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "light brown 390x844 more": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "light brown 390x844 order": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "dark orange 360x800 login": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "dark orange 360x800 dashboard": {
+    "fails": [],
+    "kpiRows": [
+      [
+        {
+          "off": 38,
+          "fs": "22px",
+          "clip": false
+        },
+        {
+          "off": 38,
+          "fs": "22px",
+          "clip": false
+        }
+      ],
+      [
+        {
+          "off": 38,
+          "fs": "22px",
+          "clip": false
+        },
+        {
+          "off": 38,
+          "fs": "22px",
+          "clip": false
+        }
+      ]
+    ]
+  },
+  "dark orange 360x800 kasir": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "dark orange 360x800 product": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "dark orange 360x800 kasir+keranjang": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "dark orange 360x800 cart": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "dark orange 360x800 payment": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "dark orange 360x800 receipt": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "dark orange 360x800 orders": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "dark orange 360x800 products": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "dark orange 360x800 variants": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "dark orange 360x800 prices": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "dark orange 360x800 stock": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "dark orange 360x800 production": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "dark orange 360x800 expenses": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "dark orange 360x800 expenseForm": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "dark orange 360x800 reportSales": {
+    "fails": [],
+    "kpiRows": [
+      [
+        {
+          "off": 38,
+          "fs": "19.9px",
+          "clip": false
+        },
+        {
+          "off": 38,
+          "fs": "19.9px",
+          "clip": false
+        }
+      ],
+      [
+        {
+          "off": 38,
+          "fs": "19.9px",
+          "clip": false
+        },
+        {
+          "off": 38,
+          "fs": "19.9px",
+          "clip": false
+        }
+      ]
+    ]
+  },
+  "dark orange 360x800 reportProducts": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "dark orange 360x800 reportFinance": {
+    "fails": [],
+    "kpiRows": [
+      [
+        {
+          "off": 38,
+          "fs": "19.9px",
+          "clip": false
+        },
+        {
+          "off": 38,
+          "fs": "19.9px",
+          "clip": false
+        }
+      ],
+      [
+        {
+          "off": 38,
+          "fs": "19.9px",
+          "clip": false
+        },
+        {
+          "off": 38,
+          "fs": "19.9px",
+          "clip": false
+        }
+      ]
+    ]
+  },
+  "dark orange 360x800 settings": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "dark orange 360x800 more": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "dark orange 360x800 order": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "dark orange 390x844 login": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "dark orange 390x844 dashboard": {
+    "fails": [],
+    "kpiRows": [
+      [
+        {
+          "off": 38,
+          "fs": "22px",
+          "clip": false
+        },
+        {
+          "off": 38,
+          "fs": "22px",
+          "clip": false
+        }
+      ],
+      [
+        {
+          "off": 38,
+          "fs": "22px",
+          "clip": false
+        },
+        {
+          "off": 38,
+          "fs": "22px",
+          "clip": false
+        }
+      ]
+    ]
+  },
+  "dark orange 390x844 kasir": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "dark orange 390x844 product": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "dark orange 390x844 kasir+keranjang": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "dark orange 390x844 cart": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "dark orange 390x844 payment": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "dark orange 390x844 receipt": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "dark orange 390x844 orders": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "dark orange 390x844 products": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "dark orange 390x844 variants": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "dark orange 390x844 prices": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "dark orange 390x844 stock": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "dark orange 390x844 production": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "dark orange 390x844 expenses": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "dark orange 390x844 expenseForm": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "dark orange 390x844 reportSales": {
+    "fails": [],
+    "kpiRows": [
+      [
+        {
+          "off": 38,
+          "fs": "22px",
+          "clip": false
+        },
+        {
+          "off": 38,
+          "fs": "22px",
+          "clip": false
+        }
+      ],
+      [
+        {
+          "off": 38,
+          "fs": "22px",
+          "clip": false
+        },
+        {
+          "off": 38,
+          "fs": "22px",
+          "clip": false
+        }
+      ]
+    ]
+  },
+  "dark orange 390x844 reportProducts": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "dark orange 390x844 reportFinance": {
+    "fails": [],
+    "kpiRows": [
+      [
+        {
+          "off": 38,
+          "fs": "22px",
+          "clip": false
+        },
+        {
+          "off": 38,
+          "fs": "22px",
+          "clip": false
+        }
+      ],
+      [
+        {
+          "off": 38,
+          "fs": "22px",
+          "clip": false
+        },
+        {
+          "off": 38,
+          "fs": "22px",
+          "clip": false
+        }
+      ]
+    ]
+  },
+  "dark orange 390x844 settings": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "dark orange 390x844 more": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "dark orange 390x844 order": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "dark orange 800x1280 login": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "dark orange 800x1280 dashboard": {
+    "fails": [],
+    "kpiRows": [
+      [
+        {
+          "off": 38,
+          "fs": "22px",
+          "clip": false
+        },
+        {
+          "off": 38,
+          "fs": "22px",
+          "clip": false
+        }
+      ],
+      [
+        {
+          "off": 38,
+          "fs": "22px",
+          "clip": false
+        },
+        {
+          "off": 38,
+          "fs": "22px",
+          "clip": false
+        }
+      ]
+    ]
+  },
+  "dark orange 800x1280 kasir": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "dark orange 800x1280 product": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "dark orange 800x1280 kasir+keranjang": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "dark orange 800x1280 cart": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "dark orange 800x1280 payment": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "dark orange 800x1280 receipt": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "dark orange 800x1280 orders": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "dark orange 800x1280 products": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "dark orange 800x1280 variants": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "dark orange 800x1280 prices": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "dark orange 800x1280 stock": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "dark orange 800x1280 production": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "dark orange 800x1280 expenses": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "dark orange 800x1280 expenseForm": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "dark orange 800x1280 reportSales": {
+    "fails": [],
+    "kpiRows": [
+      [
+        {
+          "off": 38,
+          "fs": "22px",
+          "clip": false
+        },
+        {
+          "off": 38,
+          "fs": "22px",
+          "clip": false
+        }
+      ],
+      [
+        {
+          "off": 38,
+          "fs": "22px",
+          "clip": false
+        },
+        {
+          "off": 38,
+          "fs": "22px",
+          "clip": false
+        }
+      ]
+    ]
+  },
+  "dark orange 800x1280 reportProducts": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "dark orange 800x1280 reportFinance": {
+    "fails": [],
+    "kpiRows": [
+      [
+        {
+          "off": 38,
+          "fs": "22px",
+          "clip": false
+        },
+        {
+          "off": 38,
+          "fs": "22px",
+          "clip": false
+        }
+      ],
+      [
+        {
+          "off": 38,
+          "fs": "22px",
+          "clip": false
+        },
+        {
+          "off": 38,
+          "fs": "22px",
+          "clip": false
+        }
+      ]
+    ]
+  },
+  "dark orange 800x1280 settings": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "dark orange 800x1280 more": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "dark orange 800x1280 order": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "dark green 390x844 login": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "dark green 390x844 dashboard": {
+    "fails": [],
+    "kpiRows": [
+      [
+        {
+          "off": 38,
+          "fs": "22px",
+          "clip": false
+        },
+        {
+          "off": 38,
+          "fs": "22px",
+          "clip": false
+        }
+      ],
+      [
+        {
+          "off": 38,
+          "fs": "22px",
+          "clip": false
+        },
+        {
+          "off": 38,
+          "fs": "22px",
+          "clip": false
+        }
+      ]
+    ]
+  },
+  "dark green 390x844 kasir": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "dark green 390x844 product": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "dark green 390x844 kasir+keranjang": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "dark green 390x844 cart": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "dark green 390x844 payment": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "dark green 390x844 receipt": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "dark green 390x844 orders": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "dark green 390x844 products": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "dark green 390x844 variants": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "dark green 390x844 prices": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "dark green 390x844 stock": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "dark green 390x844 production": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "dark green 390x844 expenses": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "dark green 390x844 expenseForm": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "dark green 390x844 reportSales": {
+    "fails": [],
+    "kpiRows": [
+      [
+        {
+          "off": 38,
+          "fs": "22px",
+          "clip": false
+        },
+        {
+          "off": 38,
+          "fs": "22px",
+          "clip": false
+        }
+      ],
+      [
+        {
+          "off": 38,
+          "fs": "22px",
+          "clip": false
+        },
+        {
+          "off": 38,
+          "fs": "22px",
+          "clip": false
+        }
+      ]
+    ]
+  },
+  "dark green 390x844 reportProducts": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "dark green 390x844 reportFinance": {
+    "fails": [],
+    "kpiRows": [
+      [
+        {
+          "off": 38,
+          "fs": "22px",
+          "clip": false
+        },
+        {
+          "off": 38,
+          "fs": "22px",
+          "clip": false
+        }
+      ],
+      [
+        {
+          "off": 38,
+          "fs": "22px",
+          "clip": false
+        },
+        {
+          "off": 38,
+          "fs": "22px",
+          "clip": false
+        }
+      ]
+    ]
+  },
+  "dark green 390x844 settings": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "dark green 390x844 more": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "dark green 390x844 order": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "dark blue 390x844 login": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "dark blue 390x844 dashboard": {
+    "fails": [],
+    "kpiRows": [
+      [
+        {
+          "off": 38,
+          "fs": "22px",
+          "clip": false
+        },
+        {
+          "off": 38,
+          "fs": "22px",
+          "clip": false
+        }
+      ],
+      [
+        {
+          "off": 38,
+          "fs": "22px",
+          "clip": false
+        },
+        {
+          "off": 38,
+          "fs": "22px",
+          "clip": false
+        }
+      ]
+    ]
+  },
+  "dark blue 390x844 kasir": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "dark blue 390x844 product": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "dark blue 390x844 kasir+keranjang": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "dark blue 390x844 cart": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "dark blue 390x844 payment": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "dark blue 390x844 receipt": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "dark blue 390x844 orders": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "dark blue 390x844 products": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "dark blue 390x844 variants": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "dark blue 390x844 prices": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "dark blue 390x844 stock": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "dark blue 390x844 production": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "dark blue 390x844 expenses": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "dark blue 390x844 expenseForm": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "dark blue 390x844 reportSales": {
+    "fails": [],
+    "kpiRows": [
+      [
+        {
+          "off": 38,
+          "fs": "22px",
+          "clip": false
+        },
+        {
+          "off": 38,
+          "fs": "22px",
+          "clip": false
+        }
+      ],
+      [
+        {
+          "off": 38,
+          "fs": "22px",
+          "clip": false
+        },
+        {
+          "off": 38,
+          "fs": "22px",
+          "clip": false
+        }
+      ]
+    ]
+  },
+  "dark blue 390x844 reportProducts": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "dark blue 390x844 reportFinance": {
+    "fails": [],
+    "kpiRows": [
+      [
+        {
+          "off": 38,
+          "fs": "22px",
+          "clip": false
+        },
+        {
+          "off": 38,
+          "fs": "22px",
+          "clip": false
+        }
+      ],
+      [
+        {
+          "off": 38,
+          "fs": "22px",
+          "clip": false
+        },
+        {
+          "off": 38,
+          "fs": "22px",
+          "clip": false
+        }
+      ]
+    ]
+  },
+  "dark blue 390x844 settings": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "dark blue 390x844 more": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "dark blue 390x844 order": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "dark maroon 390x844 login": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "dark maroon 390x844 dashboard": {
+    "fails": [],
+    "kpiRows": [
+      [
+        {
+          "off": 38,
+          "fs": "22px",
+          "clip": false
+        },
+        {
+          "off": 38,
+          "fs": "22px",
+          "clip": false
+        }
+      ],
+      [
+        {
+          "off": 38,
+          "fs": "22px",
+          "clip": false
+        },
+        {
+          "off": 38,
+          "fs": "22px",
+          "clip": false
+        }
+      ]
+    ]
+  },
+  "dark maroon 390x844 kasir": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "dark maroon 390x844 product": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "dark maroon 390x844 kasir+keranjang": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "dark maroon 390x844 cart": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "dark maroon 390x844 payment": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "dark maroon 390x844 receipt": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "dark maroon 390x844 orders": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "dark maroon 390x844 products": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "dark maroon 390x844 variants": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "dark maroon 390x844 prices": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "dark maroon 390x844 stock": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "dark maroon 390x844 production": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "dark maroon 390x844 expenses": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "dark maroon 390x844 expenseForm": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "dark maroon 390x844 reportSales": {
+    "fails": [],
+    "kpiRows": [
+      [
+        {
+          "off": 38,
+          "fs": "22px",
+          "clip": false
+        },
+        {
+          "off": 38,
+          "fs": "22px",
+          "clip": false
+        }
+      ],
+      [
+        {
+          "off": 38,
+          "fs": "22px",
+          "clip": false
+        },
+        {
+          "off": 38,
+          "fs": "22px",
+          "clip": false
+        }
+      ]
+    ]
+  },
+  "dark maroon 390x844 reportProducts": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "dark maroon 390x844 reportFinance": {
+    "fails": [],
+    "kpiRows": [
+      [
+        {
+          "off": 38,
+          "fs": "22px",
+          "clip": false
+        },
+        {
+          "off": 38,
+          "fs": "22px",
+          "clip": false
+        }
+      ],
+      [
+        {
+          "off": 38,
+          "fs": "22px",
+          "clip": false
+        },
+        {
+          "off": 38,
+          "fs": "22px",
+          "clip": false
+        }
+      ]
+    ]
+  },
+  "dark maroon 390x844 settings": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "dark maroon 390x844 more": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "dark maroon 390x844 order": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "dark brown 390x844 login": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "dark brown 390x844 dashboard": {
+    "fails": [],
+    "kpiRows": [
+      [
+        {
+          "off": 38,
+          "fs": "22px",
+          "clip": false
+        },
+        {
+          "off": 38,
+          "fs": "22px",
+          "clip": false
+        }
+      ],
+      [
+        {
+          "off": 38,
+          "fs": "22px",
+          "clip": false
+        },
+        {
+          "off": 38,
+          "fs": "22px",
+          "clip": false
+        }
+      ]
+    ]
+  },
+  "dark brown 390x844 kasir": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "dark brown 390x844 product": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "dark brown 390x844 kasir+keranjang": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "dark brown 390x844 cart": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "dark brown 390x844 payment": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "dark brown 390x844 receipt": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "dark brown 390x844 orders": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "dark brown 390x844 products": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "dark brown 390x844 variants": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "dark brown 390x844 prices": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "dark brown 390x844 stock": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "dark brown 390x844 production": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "dark brown 390x844 expenses": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "dark brown 390x844 expenseForm": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "dark brown 390x844 reportSales": {
+    "fails": [],
+    "kpiRows": [
+      [
+        {
+          "off": 38,
+          "fs": "22px",
+          "clip": false
+        },
+        {
+          "off": 38,
+          "fs": "22px",
+          "clip": false
+        }
+      ],
+      [
+        {
+          "off": 38,
+          "fs": "22px",
+          "clip": false
+        },
+        {
+          "off": 38,
+          "fs": "22px",
+          "clip": false
+        }
+      ]
+    ]
+  },
+  "dark brown 390x844 reportProducts": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "dark brown 390x844 reportFinance": {
+    "fails": [],
+    "kpiRows": [
+      [
+        {
+          "off": 38,
+          "fs": "22px",
+          "clip": false
+        },
+        {
+          "off": 38,
+          "fs": "22px",
+          "clip": false
+        }
+      ],
+      [
+        {
+          "off": 38,
+          "fs": "22px",
+          "clip": false
+        },
+        {
+          "off": 38,
+          "fs": "22px",
+          "clip": false
+        }
+      ]
+    ]
+  },
+  "dark brown 390x844 settings": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "dark brown 390x844 more": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "dark brown 390x844 order": {
+    "fails": [],
+    "kpiRows": []
+  }
+}

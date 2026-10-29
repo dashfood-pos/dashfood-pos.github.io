@@ -1,0 +1,108 @@
+# Build APK Dash Food (Trusted Web Activity) di server GitHub, lalu terbitkan di halaman Releases.
+#
+# Sekali saja, isi di Settings → Secrets and variables → Actions → tab "Secrets":
+#   DF_KEYSTORE_BASE64     isi file dashfood-release.keystore.base64.txt
+#   DF_KEYSTORE_PASSWORD   kata sandi kunci
+# Lalu: tab Actions → "Build APK Android" → Run workflow. APK muncul di halaman Releases repo.
+#
+# Alamat yang dibuka APK ditentukan otomatis:
+#   variabel DF_CUSTOM_DOMAIN diisi (mis. dashfood.my.id) → https://dashfood.my.id/
+#   repo <org>.github.io di organisasi sendiri (disarankan) → https://<org>.github.io/
+#   repo biasa (mis. dashfood) → https://<akun>.github.io/dashfood/ (perlu assetlinks di repo <akun>.github.io; DEPLOYMENT §11)
+name: Build APK Android
+
+on:
+  workflow_dispatch:
+  push:
+    tags: ['apk-*']
+
+permissions:
+  contents: write
+
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Tentukan alamat PWA dari nama repo
+        id: url
+        run: |
+          OWNER="$(echo '${{ github.repository_owner }}' | tr '[:upper:]' '[:lower:]')"
+          REPO="$(echo '${{ github.event.repository.name }}' | tr '[:upper:]' '[:lower:]')"
+          HOST="${OWNER}.github.io"
+          if [ "$REPO" = "$HOST" ]; then WEBPATH="/"; else WEBPATH="/${{ github.event.repository.name }}/"; fi
+          # Domain sendiri (variabel DF_CUSTOM_DOMAIN) selalu di root domain itu.
+          CUSTOM="$(echo '${{ vars.DF_CUSTOM_DOMAIN }}' | tr '[:upper:]' '[:lower:]' | tr -d ' ')"
+          if [ -n "$CUSTOM" ]; then HOST="$CUSTOM"; WEBPATH="/"; fi
+          echo "host=$HOST" >> "$GITHUB_OUTPUT"
+          echo "path=$WEBPATH" >> "$GITHUB_OUTPUT"
+          echo "APK akan membuka: https://${HOST}${WEBPATH}"
+          if [ "$WEBPATH" != "/" ]; then
+            echo "::notice::APK membuka sub-halaman ${WEBPATH}. Agar tanpa address bar, file .well-known/assetlinks.json harus ada di repo ${HOST} (repo portofolio). Lihat DEPLOYMENT.md bagian 11."
+          fi
+
+      - name: Cek kunci tanda tangan
+        env:
+          KS: ${{ secrets.DF_KEYSTORE_BASE64 }}
+          PW: ${{ secrets.DF_KEYSTORE_PASSWORD }}
+        run: |
+          if [ -z "$KS" ] || [ -z "$PW" ]; then
+            echo "::error::Secret DF_KEYSTORE_BASE64 / DF_KEYSTORE_PASSWORD belum diisi (Settings → Secrets and variables → Actions)."
+            exit 1
+          fi
+          echo "$KS" | base64 -d > "$RUNNER_TEMP/release.keystore"
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      # default action memasang paket 'tools' yang sudah dihapus dari repositori SDK → gagal; cukup platform-tools
+      - uses: android-actions/setup-android@v3
+        with:
+          packages: 'platform-tools'
+
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.10.2'
+
+      - name: Build APK
+        env:
+          DF_KEYSTORE: ${{ runner.temp }}/release.keystore
+          DF_KEYSTORE_PASSWORD: ${{ secrets.DF_KEYSTORE_PASSWORD }}
+          DF_KEY_ALIAS: dashfood
+        run: |
+          gradle -p android assembleRelease --no-daemon \
+            -PtwaHost='${{ steps.url.outputs.host }}' -PtwaPath='${{ steps.url.outputs.path }}' \
+            -PversionCode='${{ github.run_number }}' -PversionName='1.5.${{ github.run_number }}'
+
+      - name: Pastikan sidik jari APK = yang tercantum di assetlinks.json (web/pwa.config.json)
+        run: |
+          APK=android/app/build/outputs/apk/release/app-release.apk
+          test -f "$APK" || { echo "::error::APK tidak terbentuk"; exit 1; }
+          BT="$(ls -d "$ANDROID_HOME"/build-tools/* | sort -V | tail -1)"
+          GOT="$("$BT/apksigner" verify --print-certs "$APK" | grep -m1 'SHA-256 digest' | awk '{print $NF}' | tr '[:lower:]' '[:upper:]' | sed 's/../&:/g; s/:$//')"
+          WANT="$(node -e "console.log(require('./web/pwa.config.json').twa.sha256)")"
+          echo "APK : $GOT"; echo "Web : $WANT"
+          if [ "$GOT" != "$WANT" ]; then
+            echo "::error::Sidik jari berbeda. Kunci di Secrets bukan kunci yang sidik jarinya ada di web/pwa.config.json → twa.sha256."
+            exit 1
+          fi
+          mkdir -p out && cp "$APK" "out/DashFood-1.5.${{ github.run_number }}.apk"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: DashFood-APK
+          path: out/*.apk
+
+      - name: Terbitkan di Releases (unduh langsung dari HP)
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: apk-1.5.${{ github.run_number }}
+          name: Dash Food APK 1.5.${{ github.run_number }}
+          body: |
+            APK Dash Food (Trusted Web Activity) yang membuka https://${{ steps.url.outputs.host }}${{ steps.url.outputs.path }}
+            Data tersimpan di Google Sheets lewat Apps Script — sama dengan PWA dan link /exec.
+            Pasang: unduh file .apk di bawah dari HP → buka → izinkan "Instal aplikasi tidak dikenal" untuk browser/File.
+          files: out/*.apk

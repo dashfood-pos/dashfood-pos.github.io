@@ -1,0 +1,20 @@
+{
+  "name": "dash-food-pos",
+  "version": "1.4.0",
+  "private": true,
+  "description": "Dash Food POS — Google Apps Script + Google Sheets, dengan versi PWA untuk GitHub Pages",
+  "scripts": {
+    "build:dev": "node dev/build-dev.js",
+    "build:web": "node tools/build-web.js",
+    "icons": "node tools/make-icons.js",
+    "serve:web": "node dev/serve-web.js",
+    "test:backend": "node --test tests/backend.test.js",
+    "test:ui": "node dev/build-dev.js && node --test --test-concurrency=1 tests/ui/ui.test.js tests/ui/features.test.js tests/ui/sprint2.test.js tests/ui/pwa.test.js tests/ui/v14.test.js",
+    "test": "npm run test:backend && npm run test:ui",
+    "check:taste": "node dev/taste-check.js",
+    "measure:nav": "node dev/measure-nav.js 800"
+  },
+  "devDependencies": {
+    "playwright": "^1.48.0"
+  }
+}

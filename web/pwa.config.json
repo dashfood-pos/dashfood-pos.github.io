@@ -1,0 +1,15 @@
+{
+  "apiUrl": "",
+  "appName": "Dash Food POS",
+  "shortName": "Dash Food",
+  "description": "Aplikasi kasir Dash Food",
+  "themeColor": "#F2F1EE",
+  "backgroundColor": "#F2F1EE",
+  "twa": {
+    "host": "",
+    "path": "",
+    "packageId": "com.dashfood.pos",
+    "sha256": "08:80:16:25:52:A2:C8:3D:65:86:39:79:39:84:86:E0:95:74:8C:AA:E8:0D:6B:0E:9E:55:A3:A0:2E:B9:67:5A",
+    "_catatan": "host/path kosong = diisi otomatis oleh workflow dari nama repo GitHub. sha256 = sidik jari kunci APK (publik, aman di-commit)."
+  }
+}

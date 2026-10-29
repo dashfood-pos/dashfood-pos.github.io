@@ -1,0 +1,16 @@
+node_modules/
+dist-web/
+dev/dist/
+dev/dist-web-test/
+screenshots/
+*.log
+.DS_Store
+# Kunci tanda tangan APK: JANGAN di-commit (simpan di GitHub Secrets)
+*.keystore
+*.jks
+*.keystore.base64.txt
+KATA-SANDI*.txt
+android/.gradle/
+android/build/
+android/app/build/
+android/local.properties

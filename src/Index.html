@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <base target="_top">
+  <meta charset="utf-8">
+  <!-- Di Apps Script, viewport efektif berasal dari addMetaTag() di doGet(). Tag ini untuk dev harness. -->
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
+  <title>Dash Food POS</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <!-- Satu font: Inter. Dimuat tanpa memblokir render (media=print → all); font sistem dipakai sementara. -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400..800&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+  <!-- Tema dipasang sebelum CSS dibaca agar tidak berkedip terang→gelap -->
+  <script>try { var __t = JSON.parse(localStorage.getItem('df_theme')); if (__t === 'dark' || __t === 'light') document.documentElement.setAttribute('data-theme', __t);
+    var __a = JSON.parse(localStorage.getItem('df_accent')); if (/^(green|blue|maroon|brown)$/.test(__a || '')) document.documentElement.setAttribute('data-accent', __a); } catch (e) {}</script>
+  <?!= include('Styles'); ?>
+</head>
+<body>
+  <?!= include('Icons'); ?>
+  <div id="app" class="app" aria-live="polite">
+    <!-- Skeleton awal (tampil sebelum JS jalan): kerangka Beranda + bottom nav -->
+    <div class="boot-skel" role="status" aria-busy="true"><span class="sr-only">Memuat Dash Food…</span>
+      <div class="sk-hdr"><div class="grow" style="display:flex;flex-direction:column;gap:8px;flex:1"><div class="sk sk-line lg w60" style="height:20px;border-radius:6px"></div><div class="sk sk-line w45" style="height:12px;border-radius:6px"></div></div><div class="sk" style="width:42px;height:42px;border-radius:50%"></div></div>
+      <div class="skel">
+        <div class="kpi-grid"><div class="sk-card"><div class="sk sk-line w45"></div><div class="sk sk-line lg w80"></div></div><div class="sk-card"><div class="sk sk-line w45"></div><div class="sk sk-line lg w80"></div></div><div class="sk-card"><div class="sk sk-line w45"></div><div class="sk sk-line lg w80"></div></div><div class="sk-card"><div class="sk sk-line w45"></div><div class="sk sk-line lg w80"></div></div></div>
+        <div class="sk-card"><div class="sk sk-line lg w45"></div><div class="sk" style="height:64px;border-radius:12px"></div></div>
+        <div class="list-card"><div class="sk-row"><div class="sk sk-thumb"></div><div class="grow"><div class="sk sk-line w60"></div><div class="sk sk-line w30"></div></div></div><div class="sk-row"><div class="sk sk-thumb"></div><div class="grow"><div class="sk sk-line w60"></div><div class="sk sk-line w30"></div></div></div></div>
+      </div>
+      <div class="sk-nav"></div>
+    </div>
+  </div>
+  <div id="sheet-root"></div>
+  <div id="toast-root" class="toast-root" role="status" aria-live="polite"></div>
+  <div id="print-root" class="print-root" aria-hidden="true"></div>
+  <script>window.__BOOT_PUBLIC = <?!= bootPublic ?>;</script>
+  <?!= include('App'); ?>
+</body>
+</html>

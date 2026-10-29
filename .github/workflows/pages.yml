@@ -1,0 +1,50 @@
+# Deploy versi PWA ke GitHub Pages setiap push ke branch main.
+# Settings → Pages → Source: "GitHub Actions".
+# Settings → Secrets and variables → Actions → Variables → New variable: DF_API_URL = URL /exec Web App Apps Script.
+# Opsional: DF_CUSTOM_DOMAIN = domain sendiri (mis. dashfood.my.id). Kosong = alamat <nama>.github.io.
+name: Deploy PWA ke GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Build PWA (tanpa npm install; hanya modul bawaan Node)
+        env:
+          DF_API_URL: ${{ vars.DF_API_URL }}
+          DF_CUSTOM_DOMAIN: ${{ vars.DF_CUSTOM_DOMAIN }}
+        run: node tools/build-web.js
+      - name: Cek file untuk APK (assetlinks.json)
+        run: test -f dist-web/.well-known/assetlinks.json && cat dist-web/.well-known/assetlinks.json
+      - uses: actions/configure-pages@v5
+      # v3 sengaja: ikut menyertakan folder tersembunyi .well-known/ (assetlinks.json untuk APK)
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist-web
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

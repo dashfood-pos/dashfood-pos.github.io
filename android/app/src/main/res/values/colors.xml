@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Mengikuti token warna latar aplikasi (terang / gelap) -->
+    <color name="statusBar">#F2F1EE</color>
+    <color name="statusBarDark">#12100E</color>
+    <color name="navigationBar">#FFFFFF</color>
+    <color name="navigationBarDark">#1D1A17</color>
+    <color name="splashBackground">#15110E</color>
+    <color name="iconBackground">#15110E</color>
+</resources>

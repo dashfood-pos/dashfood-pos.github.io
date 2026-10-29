@@ -1,0 +1,11 @@
+// Proyek Android TWA (Trusted Web Activity) untuk Dash Food POS.
+// Dibuild di GitHub Actions (.github/workflows/android.yml); tidak perlu Android Studio.
+pluginManagement {
+    repositories { google(); mavenCentral(); gradlePluginPortal() }
+}
+dependencyResolutionManagement {
+    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+    repositories { google(); mavenCentral() }
+}
+rootProject.name = 'DashFoodTWA'
+include ':app'

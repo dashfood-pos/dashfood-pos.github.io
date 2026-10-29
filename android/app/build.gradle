@@ -1,0 +1,79 @@
+/*
+ * APK = pembungkus PWA (Trusted Web Activity). Aplikasi tidak menyimpan data sendiri:
+ * semua data dibaca/ditulis ke Apps Script → Google Sheets, sama seperti PWA dan link /exec.
+ *
+ * Nilai diambil dari ../../web/pwa.config.json (bagian "twa") dan bisa ditimpa lewat -P di Gradle:
+ *   -PtwaHost=namaanda.github.io  -PtwaPath=/  -PversionCode=12  -PversionName=1.5.12
+ * Kunci tanda tangan dari environment: DF_KEYSTORE, DF_KEYSTORE_PASSWORD, DF_KEY_ALIAS.
+ */
+plugins {
+    id 'com.android.application'
+}
+
+def cfg = new groovy.json.JsonSlurper().parse(file('../../web/pwa.config.json'))
+def twa = cfg.twa ?: [:]
+def host = (project.findProperty('twaHost') ?: twa.host ?: '').toString().trim()
+def webPath = (project.findProperty('twaPath') ?: twa.path ?: '/').toString().trim()
+if (!host) throw new GradleException('Host PWA kosong. Isi web/pwa.config.json → twa.host atau -PtwaHost=namaanda.github.io')
+if (!webPath.startsWith('/')) webPath = '/' + webPath
+if (!webPath.endsWith('/')) webPath = webPath + '/'
+def appId = (twa.packageId ?: 'com.dashfood.pos').toString()
+def launchUrl = "https://${host}${webPath}"
+// Nilai resource: tanda kutip di-escape \" agar terbaca benar oleh Android (sama seperti template Bubblewrap).
+def q = '\\"'
+def assetStatements = "[{ ${q}relation${q}: [${q}delegate_permission/common.handle_all_urls${q}], ${q}target${q}: {${q}namespace${q}: ${q}web${q}, ${q}site${q}: ${q}https://${host}${q}}}]"
+
+android {
+    namespace 'com.dashfood.twa'
+    compileSdk 35
+
+    defaultConfig {
+        applicationId appId
+        minSdk 21
+        targetSdk 35
+        versionCode((project.findProperty('versionCode') ?: '1').toString().toInteger())
+        versionName((project.findProperty('versionName') ?: '1.5').toString())
+
+        resValue 'string', 'appName', cfg.appName.toString()
+        resValue 'string', 'launcherName', cfg.shortName.toString()
+        resValue 'string', 'launchUrl', launchUrl
+        resValue 'string', 'hostName', host
+        resValue 'string', 'providerAuthority', appId + '.fileprovider'
+        resValue 'string', 'assetStatements', assetStatements
+        manifestPlaceholders = [hostName: host, webPath: webPath]
+    }
+
+    signingConfigs {
+        release {
+            def ks = System.getenv('DF_KEYSTORE')
+            if (ks) {
+                storeFile file(ks)
+                storePassword System.getenv('DF_KEYSTORE_PASSWORD')
+                keyAlias System.getenv('DF_KEY_ALIAS') ?: 'dashfood'
+                keyPassword System.getenv('DF_KEYSTORE_PASSWORD')
+            }
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            signingConfig System.getenv('DF_KEYSTORE') ? signingConfigs.release : null
+        }
+    }
+
+    lint {
+        // Build di CI tidak boleh gagal karena peringatan lint (proyek hanya membungkus situs).
+        checkReleaseBuilds false
+        abortOnError false
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+}
+
+dependencies {
+    implementation 'com.google.androidbrowserhelper:androidbrowserhelper:2.5.0'
+}
