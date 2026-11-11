@@ -737,3 +737,78 @@ test('doPost (PWA): kontrak sama dengan api(), token di body, input rusak ditola
   assert.equal(post({ action: 'hapusSemua', token }).error.code, 'UNKNOWN_ACTION');
   assert.equal(ctx.doPost(undefined).getContent().includes('"ok":false'), true);
 });
+
+/* ---------------- v1.6: periode mingguan/bulanan & data chart ---------------- */
+
+test('v1.6 periode: minggu ini/lalu, bulan ini/lalu + pembanding yang setara', () => {
+  const { ctx } = boot({ demo: false });
+  const at = (iso) => ctx.__setClock(Date.parse(iso + 'T04:00:00Z')); // 12:00 WITA
+  const rp = (period) => { const r = ctx.resolvePeriod({ period }); return [r.from, r.to, r.prev_from, r.prev_to, r.days]; };
+  at('2026-11-11'); // Rabu
+  assert.deepEqual(rp('week'), ['2026-11-09', '2026-11-11', '2026-11-02', '2026-11-04', 3]);
+  assert.deepEqual(rp('last_week'), ['2026-11-02', '2026-11-08', '2026-10-26', '2026-11-01', 7]);
+  assert.deepEqual(rp('month'), ['2026-11-01', '2026-11-11', '2026-10-01', '2026-10-11', 11]);
+  assert.deepEqual(rp('last_month'), ['2026-10-01', '2026-10-31', '2026-09-01', '2026-09-30', 31]);
+  assert.equal(ctx.resolvePeriod({ period: 'week' }).label, 'Minggu ini');
+  at('2026-11-15'); // Minggu → masih minggu yang sama
+  assert.deepEqual(rp('week').slice(0, 2), ['2026-11-09', '2026-11-15']);
+  at('2026-11-16'); // Senin → minggu baru, 1 hari
+  assert.deepEqual(rp('week'), ['2026-11-16', '2026-11-16', '2026-11-09', '2026-11-09', 1]);
+  at('2026-03-31'); // bulan ini 31 hari vs Februari 28 hari → dipotong di akhir Februari
+  assert.deepEqual(rp('month').slice(2), ['2026-02-01', '2026-02-28', 31]);
+  assert.deepEqual(rp('last_month'), ['2026-02-01', '2026-02-28', '2026-01-01', '2026-01-31', 28]);
+  at('2026-01-05'); // bulan lalu menyeberang tahun
+  assert.deepEqual(rp('last_month'), ['2025-12-01', '2025-12-31', '2025-11-01', '2025-11-30', 31]);
+  ctx.__resetClock();
+  assert.equal(ctx.weekdayIdx('2026-11-09'), 0);
+  assert.equal(ctx.weekdayIdx('2026-11-15'), 6);
+});
+
+test('v1.6 laporan: data pembanding & harian untuk chart, dashboard bulan lalu', () => {
+  const { ctx, api, ids } = boot({ seedDaysAgo: 3 });
+  const today = ctx.todayStr();
+  const a = ok(api('createOrder', { channel: 'OFFLINE', items: [{ product_id: ids.Sago, quantity: 2 }] }));
+  ok(api('recordPayment', { order_id: a.order_id, payment_method: 'CASH', received_amount: 50000 }));
+  ok(api('saveExpense', { expense_date: today, category: 'Bahan', description: 'Gula', amount: 10000, payment_method: 'CASH' }));
+  for (const period of ['week', 'last_week', 'month', 'last_month', '7d', '30d', 'today']) {
+    const s = ok(api('reportSales', { period }));
+    assert.equal(s.daily.length, s.range.days, period + ' daily');
+    assert.equal(s.prev_daily.length, s.range.prev_days, period + ' prev_daily');
+    assert.equal(s.daily.reduce((t, d) => t + d.omzet, 0), s.summary.omzet, period + ' Σ harian = omzet');
+    const f = ok(api('reportFinance', { period }));
+    assert.equal(f.daily.length, f.range.days);
+    assert.equal(f.daily.reduce((t, d) => t + d.pengeluaran, 0), f.summary.pengeluaran, period + ' Σ pengeluaran');
+    f.daily.forEach((d) => assert.equal(d.laba, d.omzet - d.pengeluaran));
+    const p = ok(api('reportProducts', { period }));
+    assert.equal(typeof p.prev_total_revenue, 'number');
+    assert.equal(typeof p.prev_by_product, 'object');
+    assert.ok(ok(api('dashboard', { period })).kpi, period + ' dashboard');
+  }
+  const t = ok(api('reportFinance', { period: 'today' }));
+  assert.equal(t.daily.length, 1);
+  assert.equal(t.daily[0].omzet, t.summary.omzet);
+  assert.ok(t.daily[0].omzet >= a.total, 'order hari ini masuk');
+  assert.ok(t.daily[0].pengeluaran >= 10000, 'pengeluaran hari ini masuk');
+  assert.equal(t.daily[0].laba, t.summary.laba_bersih);
+  const lm = ok(api('dashboard', { period: 'last_month' }));
+  assert.equal(lm.range.label, 'Bulan lalu');
+  assert.equal(lm.range.to.substring(8), String(new Date(Date.UTC(+today.slice(0, 4), +today.slice(5, 7) - 1, 0)).getUTCDate()).padStart(2, '0'));
+  assert.equal(errCode(api('reportFinance', { period: 'custom', date_from: '2024-01-01', date_to: '2026-01-01' })), 'INVALID_PERIOD');
+});
+
+test('v1.7 akun Kasir: label "Kasir", tidak bisa membuka dashboard (laba), tetap bisa jualan & lihat riwayat', () => {
+  const { ctx, api, ids } = boot();
+  makeUser(api, 'kasir', 'STAFF');
+  const tk = ok(callApi(ctx, 'login', { username: 'kasir', password: 'password123' })).token;
+  const k = (a, p) => callApi(ctx, a, p, tk);
+  assert.equal(errCode(k('dashboard', { period: 'today' })), 'FORBIDDEN');
+  assert.equal(errCode(k('reportSales', { period: 'week' })), 'FORBIDDEN');
+  const b = ok(callApi(ctx, 'bootstrap', { token: tk }));
+  assert.equal(b.dashboard, null, 'bootstrap kasir tanpa angka laba');
+  assert.equal(b.session.labels.ROLES.STAFF, 'Kasir');
+  assert.ok(b.catalog, 'katalog tetap dikirim');
+  const o = ok(k('createOrder', { channel: 'OFFLINE', items: [{ product_id: ids.Sago, quantity: 1 }] }));
+  ok(k('recordPayment', { order_id: o.order_id, payment_method: 'CASH', received_amount: 20000 }));
+  assert.ok(ok(k('orders', { period: 'today' })).orders.some((x) => x.order_id === o.order_id));
+  assert.ok(ok(api('dashboard', { period: 'today' })).kpi, 'admin tetap bisa');
+});

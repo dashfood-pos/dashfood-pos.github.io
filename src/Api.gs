@@ -174,6 +174,8 @@ function bootstrap_(payload) {
   try { user = authenticate_(payload && payload.token); } catch (e) { return out; }
   out.session = { user: publicUser_(user), settings: settings(), enums: ENUMS, labels: LABELS, server_time: nowIso(), today: todayStr() };
   try { out.catalog = catalog(); } catch (e) { out.catalog_error = e.message; }
-  try { out.dashboard = dashboard({ period: 'today' }); } catch (e) { out.dashboard_error = e.message; }
+  if (hasRole_(user, 'MANAGER')) {
+    try { out.dashboard = dashboard({ period: 'today' }); } catch (e) { out.dashboard_error = e.message; }
+  }
   return out;
 }

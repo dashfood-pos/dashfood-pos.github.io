@@ -63,7 +63,7 @@ async function login(page, user = 'admin', pass = 'admin123') {
   await page.waitForSelector('[data-screen="login"]');
   await page.fill('input[name=username]', user); await page.fill('input[name=password]', pass);
   await page.click('#login-btn');
-  await page.waitForSelector('[data-screen="dashboard"] .kpi', { timeout: 15000 });
+  await page.waitForSelector('[data-screen="dashboard"] .kpi, [data-screen="kasir"]', { timeout: 15000 });
 }
 async function idle(page) {
   await page.waitForFunction(() => !document.querySelector('#app .state .spinner') && !document.querySelector('#app .skel') && !document.querySelector('.refresh-bar') && !document.querySelector('.btn .spinner'), null, { timeout: 15000 });

@@ -21,6 +21,22 @@ Yang perlu diketahui:
 - **Tampilan ter-update sendiri.** Kalau ada perbaikan tampilan, cukup tutup dan buka lagi aplikasinya. APK hanya perlu dipasang ulang kalau ikon atau nama aplikasi berubah.
 - **Akun dibuat oleh admin**, lewat menu *Lainnya → Pengguna*. Ada tiga peran: **Admin** (semua akses), **Manager** (produk, harga, stok), dan **Staff** (kasir).
 
+### HP kasir di booth & printer Bluetooth (mulai v1.7)
+
+- Buka **https://dashfood-pos.github.io/kasir/** di HP booth → menu Chrome → **Tambahkan ke layar utama** (ikon **DF Kasir**). Login dengan akun ber-role **Kasir**: aplikasi langsung membuka layar Kasir, tanpa laporan/laba/pengaturan.
+- Akun kasir dibuat admin di **Pengaturan → Akun Pengguna → Tambah → role Kasir**.
+- Printer: **Lainnya → Printer Struk** di tiap HP. Paling cepat: sambungkan printer di Bluetooth HP → pasang **RawBT** dari Play Store → pilih *RawBT*, kertas 58 mm, aktifkan **Cetak otomatis** → **Cetak Uji**.
+
+### Evaluasi mingguan & bulanan (mulai v1.6)
+
+| Kapan | Buka | Pilih periode |
+|---|---|---|
+| Sekilas setiap hari | **Beranda** → menu periode di kanan atas | Hari ini / Kemarin |
+| Tiap Senin | **Lainnya → Laporan** | **Minggu lalu** (Senin–Minggu, dibandingkan minggu sebelumnya) |
+| Tiap awal bulan | **Beranda** atau **Lainnya → Laporan** | **Bulan lalu** (dibandingkan bulan sebelumnya) |
+
+Di tiap laporan ada **Kesimpulan Singkat** (naik/turun, hari paling ramai, produk terlaris, untung/rugi) dan grafik yang bisa diketuk untuk melihat angkanya. Tombol **Unduh Excel** dan **Unduh PDF** menyimpan laporan ke HP untuk diarsipkan atau dikirim ke rekan usaha.
+
 ---
 
 ## Di mana data disimpan

@@ -41,7 +41,7 @@ async function login(page, user = 'admin', pw = 'admin123') {
   await page.fill('input[name=username]', user);
   await page.fill('input[name=password]', pw);
   await page.click('#login-btn');
-  await page.waitForSelector('[data-screen="dashboard"] .kpi', { timeout: 15000 });
+  await page.waitForSelector('[data-screen="dashboard"] .kpi, [data-screen="kasir"]', { timeout: 15000 });
 }
 
 test('PWA: manifest valid, ikon ada, service worker aktif, meta theme-color', async () => {
@@ -117,7 +117,7 @@ test('PWA: reload memakai sesi tersimpan (1 panggilan bootstrap), info publik da
   await page.waitForFunction(() => Object.keys(localStorage).filter((k) => k.indexOf('df_dc|') === 0 && /orders|stock/.test(k)).length >= 2, null, { timeout: 10000 });
   const n0 = srv.stats.actions.length;
   await page.reload();
-  await page.waitForSelector('[data-screen="dashboard"] .kpi', { timeout: 15000 });
+  await page.waitForSelector('[data-screen="dashboard"] .kpi, [data-screen="kasir"]', { timeout: 15000 });
   await page.waitForFunction(() => true);
   for (let i = 0; i < 50 && srv.stats.actions.length === n0; i++) await page.waitForTimeout(100);
   await page.waitForTimeout(400);
@@ -137,12 +137,12 @@ test('PWA: offline → app tetap terbuka dengan data terakhir + pesan; tanpa dat
   await idle(page);
   await page.evaluate(async () => { await navigator.serviceWorker.ready; });
   await page.reload(); // pastikan halaman dikendalikan SW
-  await page.waitForSelector('[data-screen="dashboard"] .kpi', { timeout: 15000 });
+  await page.waitForSelector('[data-screen="dashboard"] .kpi, [data-screen="kasir"]', { timeout: 15000 });
   await page.waitForTimeout(600);
   await page.context().setOffline(true);
   await page.reload();
   // 1) Ada data di perangkat: Beranda tetap tampil + peringatan, bukan layar kosong
-  await page.waitForSelector('[data-screen="dashboard"] .kpi', { timeout: 15000 });
+  await page.waitForSelector('[data-screen="dashboard"] .kpi, [data-screen="kasir"]', { timeout: 15000 });
   await page.waitForSelector('.toast:has-text("Belum terhubung")', { timeout: 15000 });
   await page.screenshot({ path: path.join(SHOTS, '05_offline.png') });
   // 2) Belum ada data di perangkat: layar error yang jelas
@@ -152,7 +152,7 @@ test('PWA: offline → app tetap terbuka dengan data terakhir + pesan; tanpa dat
   assert.match(await page.textContent('.state.error'), /Gagal terhubung|offline/i);
   await page.context().setOffline(false);
   await page.click('.state.error [data-act="retry"]');
-  await page.waitForSelector('[data-screen="dashboard"] .kpi', { timeout: 15000 });
+  await page.waitForSelector('[data-screen="dashboard"] .kpi, [data-screen="kasir"]', { timeout: 15000 });
   await page.context().close();
 });
 

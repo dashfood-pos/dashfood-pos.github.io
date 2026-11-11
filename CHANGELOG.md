@@ -1,5 +1,21 @@
 # Changelog
 
+## 1.7.0 — 11 November 2026 (aplikasi Kasir untuk booth + printer Bluetooth)
+Detail lengkap: `UPDATE_v1.7.md`.
+- Mode Kasir: akun role Kasir (dulu "Staff") atau link `/kasir/` langsung membuka Kasir; menu Kasir · Riwayat · Stok · Lainnya; laporan/laba/pengaturan disembunyikan dan ditolak server.
+- Printer Struk per HP: RawBT (disarankan), Bluetooth langsung (BLE), atau dialog cetak; kertas 58/80 mm; cetak otomatis setelah bayar; struk ESC/POS.
+- PWA kedua `/kasir/` dengan nama & ikon "DF Kasir".
+- Test: backend 51, UI 58, gate anti-slop 322 layar 0 FAIL.
+
+## 1.6.0 — 11 November 2026 (evaluasi mingguan & bulanan + unduh Excel/PDF)
+Detail lengkap: `UPDATE_v1.6.md`.
+- Beranda: filter **Bulan lalu** (juga Kemarin, Minggu ini, Minggu lalu) beserta rentang tanggal & pembandingnya.
+- Periode baru `week` / `last_week`; pembanding lebih adil (Bulan ini vs tanggal yang sama bulan lalu, Bulan lalu vs bulan sebelumnya penuh).
+- Laporan: chip periode, Kesimpulan Singkat dalam kalimat biasa, grafik batang yang bisa diketuk dengan pembanding periode lalu, Per hari/Per minggu, Hari Paling Ramai, Omzet vs Pengeluaran, Untung/Rugi, pendapatan per produk dengan % naik/turun.
+- Unduh laporan **Excel (.xlsx)** dan **PDF** langsung dari HP, tanpa library tambahan.
+- Kenaikan pengeluaran kini berwarna merah.
+- Tanpa perubahan schema. Test: backend 50, UI 54, gate anti-slop 308 layar 0 FAIL.
+
 ## 1.5.4 — 28 Oktober 2026 (perbaikan setelah rilis pertama)
 - APK tidak lagi tertutup sendiri saat dibuka. Penyebabnya: folder gambar splash belum terdaftar di FileProvider (`android/app/src/main/res/xml/filepaths.xml`).
 - Garis terang di atas area gestur HP dihapus, jadi menu bawah menyatu dengan area gestur.

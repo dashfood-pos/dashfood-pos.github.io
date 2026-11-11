@@ -5,7 +5,8 @@
  */
 var VERSION = '__VERSION__';
 var CACHE = 'dashfood-shell-' + VERSION;
-var SHELL = ['./', './index.html', './config.js', './manifest.webmanifest', './icons/icon-192.png', './icons/icon-512.png'];
+var SHELL = ['./', './index.html', './config.js', './manifest.webmanifest', './icons/icon-192.png', './icons/icon-512.png',
+  './kasir/', './kasir/manifest.webmanifest'];
 
 self.addEventListener('install', function (e) {
   e.waitUntil(caches.open(CACHE).then(function (c) { return c.addAll(SHELL); }).then(function () { return self.skipWaiting(); }));
@@ -29,7 +30,7 @@ self.addEventListener('fetch', function (e) {
       if (res && res.ok) { var copy = res.clone(); caches.open(CACHE).then(function (c) { c.put(req, copy); }); }
       return res;
     }).catch(function () {
-      return caches.match(req).then(function (hit) { return hit || caches.match('./index.html'); });
+      return caches.match(req).then(function (hit) { return hit || caches.match(/\/kasir\//.test(url.pathname) ? './kasir/' : './index.html'); });
     }));
     return;
   }

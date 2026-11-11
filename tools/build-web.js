@@ -81,6 +81,24 @@ function build(opts = {}) {
     ]
   };
   fs.writeFileSync(path.join(out, 'manifest.webmanifest'), JSON.stringify(manifest, null, 2));
+
+  // Aplikasi Kasir (HP booth): UI sama, mode kasir dipaksa (window.DF_APP), ikon & nama terpisah saat di-install.
+  fs.mkdirSync(path.join(out, 'kasir'), { recursive: true });
+  const kasirName = (cfg.appName || 'Dash Food') + ' Kasir';
+  let kHtml = html
+    .replace('<link rel="manifest" href="manifest.webmanifest">', '<link rel="manifest" href="manifest.webmanifest">\n  <script>window.DF_APP = \'kasir\';</script>')
+    .replace(/href="icons\//g, 'href="../icons/')
+    .replace('<script src="config.js"></script>', '<script src="../config.js"></script>')
+    .replace("navigator.serviceWorker.register('sw.js')", "navigator.serviceWorker.register('../sw.js', { scope: '../' })")
+    .replace(/<title>[^<]*<\/title>/, `<title>${esc(kasirName)}</title>`)
+    .replace(/(<meta name="apple-mobile-web-app-title" content=")[^"]*"/, '$1DF Kasir"');
+  if (!kHtml.includes("window.DF_APP = 'kasir'") || !kHtml.includes('../config.js') || !kHtml.includes("register('../sw.js'")) throw new Error('Gagal membuat halaman kasir/');
+  fs.writeFileSync(path.join(out, 'kasir', 'index.html'), kHtml);
+  fs.writeFileSync(path.join(out, 'kasir', 'manifest.webmanifest'), JSON.stringify(Object.assign({}, manifest, {
+    name: kasirName, short_name: 'DF Kasir', description: 'Kasir Dash Food untuk HP di booth',
+    id: './', start_url: './', scope: './',
+    icons: manifest.icons.map((i) => Object.assign({}, i, { src: '../' + i.src }))
+  }), null, 2));
   for (const f of ['icon-192.png', 'icon-512.png', 'maskable-512.png', 'apple-touch-icon.png']) {
     const p = path.join(WEB, 'icons', f);
     if (!fs.existsSync(p)) throw new Error('Ikon hilang: web/icons/' + f + ' (jalankan: node tools/make-icons.js)');

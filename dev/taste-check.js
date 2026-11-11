@@ -139,7 +139,7 @@ async function run() {
       await check('payment');
       await page.click('[data-act="payNow"]'); await page.waitForSelector('[data-screen="receipt"] .receipt');
       await check('receipt');
-      for (const s of ['orders', 'products', 'variants', 'prices', 'stock', 'production', 'expenses', 'expenseForm', 'reportSales', 'reportProducts', 'reportFinance', 'settings', 'more']) {
+      for (const s of ['orders', 'products', 'variants', 'prices', 'stock', 'production', 'expenses', 'expenseForm', 'reportSales', 'reportProducts', 'reportFinance', 'settings', 'more', 'printer']) {
         await page.evaluate((n) => window.__DF.go(n, {}), s);
         await page.waitForSelector(`[data-screen="${s}"]`);
         await check(s);

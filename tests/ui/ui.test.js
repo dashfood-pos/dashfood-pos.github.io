@@ -49,7 +49,7 @@ async function login(page, user = 'admin') {
   await page.fill('input[name=username]', user);
   await page.fill('input[name=password]', USERS[user]);
   await page.click('#login-btn');
-  await page.waitForSelector('[data-screen="dashboard"] .kpi', { timeout: 15000 });
+  await page.waitForSelector('[data-screen="dashboard"] .kpi, [data-screen="kasir"]', { timeout: 15000 });
 }
 
 async function idle(page) {
@@ -451,12 +451,13 @@ test('form di dalam bottom sheet benar-benar tersubmit (kategori baru)', async (
   await page.context().close();
 });
 
-test('role STAFF: menu manajer terkunci dengan alasan, halaman admin ditolak', async () => {
+test('role STAFF (Kasir): menu manajer tidak ditampilkan, halaman admin ditolak', async () => {
   const page = await open();
   await login(page, 'kasir');
   await page.click('.bnav [data-tab="more"]');
-  const locked = await page.locator('.menu-row[disabled]').count();
-  assert.ok(locked >= 5);
+  // v1.7: mode Kasir menyembunyikan menu manajemen (sebelumnya tampil terkunci).
+  assert.equal(await page.locator('.menu-row[disabled]').count(), 0);
+  assert.equal(await page.locator('[data-to="reports"], [data-to="products"], [data-to="expenses"]').count(), 0);
   assert.deepEqual(await deadControls(page), []);
   await goTo(page, 'products');
   await page.waitForSelector('text=Akses dibatasi');

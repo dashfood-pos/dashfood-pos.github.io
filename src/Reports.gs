@@ -28,6 +28,19 @@ function sumTotal_(orders) {
   return orders.reduce(function (s, o) { return s + o.total; }, 0);
 }
 
+/** Deret harian 0..days-1 mulai dari `from`; fn(map, rows) mengisi nilainya. */
+function dailySeries_(from, days, init) {
+  var map = {}, keys = [];
+  for (var i = 0; i < days; i++) { var d = addDays(from, i); keys.push(d); map[d] = init(d); }
+  return { map: map, list: function () { return keys.map(function (k) { return map[k]; }); } };
+}
+
+function salesDaily_(orders, from, days) {
+  var s = dailySeries_(from, days, function (d) { return { date: d, omzet: 0, count: 0 }; });
+  orders.forEach(function (o) { var r = s.map[o.order_date]; if (r) { r.omzet += o.total; r.count += 1; } });
+  return s.list();
+}
+
 function pctChange_(cur, prev) {
   if (!prev) return null;
   return Math.round(((cur - prev) / prev) * 1000) / 10;
@@ -105,9 +118,6 @@ function reportSales(payload) {
   if (channel) requireEnum(channel, ENUMS.CHANNELS, 'Channel');
   var cur = completedOrders_(range.from, range.to, channel);
   var prev = completedOrders_(range.prev_from, range.prev_to, channel);
-  var daily = {};
-  for (var i = 0; i < range.days; i++) daily[addDays(range.from, i)] = { date: addDays(range.from, i), omzet: 0, count: 0 };
-  cur.forEach(function (o) { daily[o.order_date].omzet += o.total; daily[o.order_date].count += 1; });
   var pays = indexBy(Db.filter('PAYMENTS', function (p) { return p.status === 'PAID'; }), 'order_id');
   var byMethod = {};
   ENUMS.PAYMENT_METHODS.forEach(function (m) { byMethod[m] = { method: m, label: LABELS.PAYMENT_METHODS[m], omzet: 0, count: 0 }; });
@@ -129,7 +139,8 @@ function reportSales(payload) {
       diskon: cur.reduce(function (s, o) { return s + o.discount; }, 0),
       dibatalkan_setelah_bayar: cancelled.length
     },
-    daily: Object.keys(daily).sort().map(function (k) { return daily[k]; }),
+    daily: salesDaily_(cur, range.from, range.days),
+    prev_daily: salesDaily_(prev, range.prev_from, range.prev_days),
     by_channel: byChannel_(cur),
     by_method: ENUMS.PAYMENT_METHODS.map(function (m) { return byMethod[m]; }).filter(function (m) { return m.count > 0; }),
     definitions: METRIC_DEFINITIONS
@@ -152,8 +163,14 @@ function reportProducts(payload) {
     b.quantity += r.quantity;
     b.revenue += r.revenue;
   });
+  var prevByProduct = {}, prevTotal = 0;
+  productRows_(completedOrders_(range.prev_from, range.prev_to, channel)).forEach(function (r) {
+    var b = prevByProduct[r.product_id] || (prevByProduct[r.product_id] = { quantity: 0, revenue: 0 });
+    b.quantity += r.quantity; b.revenue += r.revenue; prevTotal += r.revenue;
+  });
   return {
     range: range, channel: channel, rows: rows,
+    prev_by_product: prevByProduct, prev_total_revenue: prevTotal,
     by_product: Object.keys(byProduct).map(function (k) { return byProduct[k]; })
       .sort(function (a, b) { return b.revenue - a.revenue; }),
     total_revenue: totalRevenue, total_quantity: rows.reduce(function (s, r) { return s + r.quantity; }, 0),
@@ -163,12 +180,16 @@ function reportProducts(payload) {
 
 function reportFinance(payload) {
   var range = resolvePeriod(payload || {});
+  if (range.days > 366) fail('INVALID_PERIOD', 'Rentang laporan maksimal 366 hari.');
   var cur = completedOrders_(range.from, range.to);
   var omzet = sumTotal_(cur);
   var exps = expensesIn_(range.from, range.to);
   var expTotal = exps.reduce(function (s, e) { return s + e.amount; }, 0);
   var byCat = {};
   exps.forEach(function (e) { byCat[e.category] = (byCat[e.category] || 0) + e.amount; });
+  var daily = dailySeries_(range.from, range.days, function (d) { return { date: d, omzet: 0, pengeluaran: 0, count: 0 }; });
+  cur.forEach(function (o) { var r = daily.map[o.order_date]; if (r) { r.omzet += o.total; r.count += 1; } });
+  exps.forEach(function (e) { var r = daily.map[e.expense_date]; if (r) r.pengeluaran += e.amount; });
   var prevOmzet = sumTotal_(completedOrders_(range.prev_from, range.prev_to));
   var prevExp = expensesIn_(range.prev_from, range.prev_to).reduce(function (s, e) { return s + e.amount; }, 0);
   return {
@@ -182,6 +203,7 @@ function reportFinance(payload) {
       return { category: k, amount: byCat[k], pct: expTotal ? Math.round((byCat[k] / expTotal) * 1000) / 10 : 0 };
     }).sort(function (a, b) { return b.amount - a.amount; }),
     by_channel: byChannel_(cur),
+    daily: daily.list().map(function (r) { r.laba = r.omzet - r.pengeluaran; return r; }),
     hpp: { available: false, reason: METRIC_DEFINITIONS.hpp },
     definitions: METRIC_DEFINITIONS
   };

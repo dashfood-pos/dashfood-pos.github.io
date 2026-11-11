@@ -39,7 +39,7 @@ var LABELS = {
     PRODUCTION_IN: 'Produksi', SALE_OUT: 'Penjualan', ADJUSTMENT_IN: 'Penyesuaian (+)',
     ADJUSTMENT_OUT: 'Penyesuaian (−)', RETURN_IN: 'Retur', CANCEL_REVERSE: 'Pembatalan'
   },
-  ROLES: { ADMIN: 'Admin', MANAGER: 'Manager', STAFF: 'Staff' }
+  ROLES: { ADMIN: 'Admin', MANAGER: 'Manager', STAFF: 'Kasir' }
 };
 
 /** Schema: nama sheet → daftar header. */
@@ -153,7 +153,7 @@ var ACTION_ROLES = {
   orders: 'STAFF',
   orderDetail: 'STAFF',
   receiptPdf: 'STAFF',
-  dashboard: 'STAFF',
+  dashboard: 'MANAGER',         // v1.7: berisi laba & pengeluaran → bukan untuk akun Kasir
   products: 'MANAGER',
   saveProduct: 'MANAGER',
   setProductActive: 'MANAGER',

@@ -94,24 +94,24 @@
       [
         {
           "off": 38,
-          "fs": "19.9px",
+          "fs": "22px",
           "clip": false
         },
         {
           "off": 38,
-          "fs": "19.9px",
+          "fs": "22px",
           "clip": false
         }
       ],
       [
         {
           "off": 38,
-          "fs": "19.9px",
+          "fs": "22px",
           "clip": false
         },
         {
           "off": 38,
-          "fs": "19.9px",
+          "fs": "22px",
           "clip": false
         }
       ]
@@ -127,24 +127,24 @@
       [
         {
           "off": 38,
-          "fs": "19.9px",
+          "fs": "22px",
           "clip": false
         },
         {
           "off": 38,
-          "fs": "19.9px",
+          "fs": "22px",
           "clip": false
         }
       ],
       [
         {
           "off": 38,
-          "fs": "19.9px",
+          "fs": "22px",
           "clip": false
         },
         {
           "off": 38,
-          "fs": "19.9px",
+          "fs": "22px",
           "clip": false
         }
       ]
@@ -155,6 +155,10 @@
     "kpiRows": []
   },
   "light orange 360x800 more": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "light orange 360x800 printer": {
     "fails": [],
     "kpiRows": []
   },
@@ -321,6 +325,10 @@
     "fails": [],
     "kpiRows": []
   },
+  "light orange 390x844 printer": {
+    "fails": [],
+    "kpiRows": []
+  },
   "light orange 390x844 order": {
     "fails": [],
     "kpiRows": []
@@ -481,6 +489,10 @@
     "kpiRows": []
   },
   "light orange 800x1280 more": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "light orange 800x1280 printer": {
     "fails": [],
     "kpiRows": []
   },
@@ -647,6 +659,10 @@
     "fails": [],
     "kpiRows": []
   },
+  "light green 390x844 printer": {
+    "fails": [],
+    "kpiRows": []
+  },
   "light green 390x844 order": {
     "fails": [],
     "kpiRows": []
@@ -807,6 +823,10 @@
     "kpiRows": []
   },
   "light blue 390x844 more": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "light blue 390x844 printer": {
     "fails": [],
     "kpiRows": []
   },
@@ -973,6 +993,10 @@
     "fails": [],
     "kpiRows": []
   },
+  "light maroon 390x844 printer": {
+    "fails": [],
+    "kpiRows": []
+  },
   "light maroon 390x844 order": {
     "fails": [],
     "kpiRows": []
@@ -1136,6 +1160,10 @@
     "fails": [],
     "kpiRows": []
   },
+  "light brown 390x844 printer": {
+    "fails": [],
+    "kpiRows": []
+  },
   "light brown 390x844 order": {
     "fails": [],
     "kpiRows": []
@@ -1235,24 +1263,24 @@
       [
         {
           "off": 38,
-          "fs": "19.9px",
+          "fs": "22px",
           "clip": false
         },
         {
           "off": 38,
-          "fs": "19.9px",
+          "fs": "22px",
           "clip": false
         }
       ],
       [
         {
           "off": 38,
-          "fs": "19.9px",
+          "fs": "22px",
           "clip": false
         },
         {
           "off": 38,
-          "fs": "19.9px",
+          "fs": "22px",
           "clip": false
         }
       ]
@@ -1268,24 +1296,24 @@
       [
         {
           "off": 38,
-          "fs": "19.9px",
+          "fs": "22px",
           "clip": false
         },
         {
           "off": 38,
-          "fs": "19.9px",
+          "fs": "22px",
           "clip": false
         }
       ],
       [
         {
           "off": 38,
-          "fs": "19.9px",
+          "fs": "22px",
           "clip": false
         },
         {
           "off": 38,
-          "fs": "19.9px",
+          "fs": "22px",
           "clip": false
         }
       ]
@@ -1296,6 +1324,10 @@
     "kpiRows": []
   },
   "dark orange 360x800 more": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "dark orange 360x800 printer": {
     "fails": [],
     "kpiRows": []
   },
@@ -1462,6 +1494,10 @@
     "fails": [],
     "kpiRows": []
   },
+  "dark orange 390x844 printer": {
+    "fails": [],
+    "kpiRows": []
+  },
   "dark orange 390x844 order": {
     "fails": [],
     "kpiRows": []
@@ -1622,6 +1658,10 @@
     "kpiRows": []
   },
   "dark orange 800x1280 more": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "dark orange 800x1280 printer": {
     "fails": [],
     "kpiRows": []
   },
@@ -1788,6 +1828,10 @@
     "fails": [],
     "kpiRows": []
   },
+  "dark green 390x844 printer": {
+    "fails": [],
+    "kpiRows": []
+  },
   "dark green 390x844 order": {
     "fails": [],
     "kpiRows": []
@@ -1948,6 +1992,10 @@
     "kpiRows": []
   },
   "dark blue 390x844 more": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "dark blue 390x844 printer": {
     "fails": [],
     "kpiRows": []
   },
@@ -2114,6 +2162,10 @@
     "fails": [],
     "kpiRows": []
   },
+  "dark maroon 390x844 printer": {
+    "fails": [],
+    "kpiRows": []
+  },
   "dark maroon 390x844 order": {
     "fails": [],
     "kpiRows": []
@@ -2274,6 +2326,10 @@
     "kpiRows": []
   },
   "dark brown 390x844 more": {
+    "fails": [],
+    "kpiRows": []
+  },
+  "dark brown 390x844 printer": {
     "fails": [],
     "kpiRows": []
   },

@@ -59,7 +59,13 @@ function pad2(n) { return (n < 10 ? '0' : '') + n; }
 
 /**
  * Menerjemahkan filter periode menjadi rentang tanggal inklusif.
- * period: today | yesterday | 7d | 30d | month | last_month | custom
+ * period: today | yesterday | 7d | 30d | week | last_week | month | last_month | custom
+ *
+ * Pembanding (prev_from..prev_to):
+ * - week / last_week  → minggu sebelumnya dengan hari yang sama (Senin s.d. hari yang sama).
+ * - month             → bulan lalu tanggal 1 s.d. tanggal yang sama (dipotong di akhir bulan).
+ * - last_month        → satu bulan penuh sebelum bulan lalu.
+ * - lainnya           → rentang dengan panjang sama tepat sebelum periode.
  */
 function resolvePeriod(payload) {
   payload = payload || {};
@@ -71,6 +77,8 @@ function resolvePeriod(payload) {
     case 'yesterday': from = to = addDays(today, -1); label = 'Kemarin'; break;
     case '7d': from = addDays(today, -6); to = today; label = '7 hari terakhir'; break;
     case '30d': from = addDays(today, -29); to = today; label = '30 hari terakhir'; break;
+    case 'week': from = addDays(today, -weekdayIdx(today)); to = today; label = 'Minggu ini'; break;
+    case 'last_week': from = addDays(today, -weekdayIdx(today) - 7); to = addDays(from, 6); label = 'Minggu lalu'; break;
     case 'month': from = today.substring(0, 8) + '01'; to = today; label = 'Bulan ini'; break;
     case 'last_month': {
       var firstThis = today.substring(0, 8) + '01';
@@ -91,10 +99,24 @@ function resolvePeriod(payload) {
       fail('INVALID_PERIOD', 'Periode tidak dikenal: ' + period);
   }
   var len = daysBetween(from, to) + 1;
+  var prevFrom = addDays(from, -len), prevTo = addDays(from, -1);
+  if (period === 'week' || period === 'last_week') {
+    prevFrom = addDays(from, -7); prevTo = addDays(to, -7);
+  } else if (period === 'month' || period === 'last_month') {
+    var prevEnd = addDays(from, -1);              // hari terakhir bulan sebelumnya
+    prevFrom = prevEnd.substring(0, 8) + '01';
+    prevTo = period === 'last_month' ? prevEnd : addDays(prevFrom, Math.min(len, +prevEnd.substring(8, 10)) - 1);
+  }
   return {
     period: period, from: from, to: to, label: label, days: len,
-    prev_from: addDays(from, -len), prev_to: addDays(from, -1)
+    prev_from: prevFrom, prev_to: prevTo, prev_days: daysBetween(prevFrom, prevTo) + 1
   };
+}
+
+/** 0 = Senin … 6 = Minggu untuk string yyyy-MM-dd. */
+function weekdayIdx(dateStr) {
+  var p = String(dateStr).split('-');
+  return (new Date(Date.UTC(+p[0], +p[1] - 1, +p[2])).getUTCDay() + 6) % 7;
 }
 
 /* ---------- ID ---------- */

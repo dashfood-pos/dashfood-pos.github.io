@@ -136,7 +136,7 @@
     channel: 'OFFLINE', cart: [], cartVersion: 0, cartRef: uuid(), discount: 0, orderNote: '', extId: '',
     pendingOrder: null, pd: null, pay: null, kasir: { q: '', cat: '' }, orders: { period: 'today', channel: '', status: '', q: '' },
     stockTab: 'PRODUCT', expenses: { period: 'month', category: '' }, dash: { period: 'today' },
-    rep: { period: '7d', channel: '' }, chartSel: null, prices: { type: 'PRODUCT', id: '' }
+    rep: { period: 'week', channel: '', gran: null }, chartSel: {}, prices: { type: 'PRODUCT', id: '' }
   };
   (function restoreCart() {
     var c = store('cart');
@@ -459,12 +459,23 @@
     { name: 'stock', label: 'Stok', icon: 'box' },
     { name: 'more', label: 'Lainnya', icon: 'menu' }
   ];
+  /** Mode Kasir: untuk HP di booth. Aktif bila akun ber-role Kasir (STAFF) atau aplikasi dibuka dari /kasir/. */
+  var KASIR_APP = window.DF_APP === 'kasir';
+  function kasirMode() { return KASIR_APP || !!(S.user && S.user.role === 'STAFF'); }
+  function homeTab() { return kasirMode() ? 'kasir' : 'dashboard'; }
+  var NAV_KASIR = [
+    { name: 'kasir', label: 'Kasir', icon: 'kasir' },
+    { name: 'orders', label: 'Riwayat', icon: 'receipt' },
+    { name: 'stock', label: 'Stok', icon: 'box' },
+    { name: 'more', label: 'Lainnya', icon: 'menu' }
+  ];
   var NAV_OWNER = { setDevice: 'more', products: 'more', productForm: 'more', variants: 'more', variantForm: 'more', prices: 'more', production: 'stock',
     expenses: 'more', expenseForm: 'more', reports: 'more', reportSales: 'more', reportProducts: 'more', reportFinance: 'more',
     settings: 'more', setStore: 'more', setChannels: 'more', setPayments: 'more', setCategories: 'more', setReceipt: 'more',
-    setUsers: 'more', setBackup: 'more', setPassword: 'more', setIcons: 'more', setData: 'more', order: 'orders', receipt: 'orders' };
+    setUsers: 'more', setBackup: 'more', setPassword: 'more', setIcons: 'more', setData: 'more', order: 'orders', receipt: 'orders', printer: 'more' };
   function bottomNav(active) {
-    return '<nav class="bnav" aria-label="Navigasi utama">' + NAV.map(function (n) {
+    var items = kasirMode() ? NAV_KASIR : NAV;
+    return '<nav class="bnav' + (items.length === 4 ? ' n4' : '') + '" aria-label="Navigasi utama">' + items.map(function (n) {
       var on = n.name === active || NAV_OWNER[active] === n.name;
       return '<button class="bnav-item' + (n.fab ? ' fab' : '') + (on ? ' active' : '') + '" data-act="tab" data-tab="' + n.name + '"' + (on ? ' aria-current="page"' : '') + '>' +
         (n.fab ? '<span class="fab-ic">' + icon(n.icon) + '</span>' : icon(n.icon)) + '<span>' + n.label + '</span></button>';
@@ -482,14 +493,15 @@
       return '<option value="' + esc(o[0]) + '"' + (String(o[0]) === String(value) ? ' selected' : '') + '>' + esc(o[1]) + '</option>';
     }).join('') + '</select>';
   }
-  var PERIODS = [['today', 'Hari ini'], ['yesterday', 'Kemarin'], ['7d', '7 Hari Terakhir'], ['30d', '30 Hari Terakhir'], ['month', 'Bulan ini'], ['last_month', 'Bulan lalu']];
+  var PERIODS = [['today', 'Hari ini'], ['yesterday', 'Kemarin'], ['7d', '7 Hari Terakhir'], ['week', 'Minggu ini'], ['last_week', 'Minggu lalu'], ['30d', '30 Hari Terakhir'], ['month', 'Bulan ini'], ['last_month', 'Bulan lalu']];
   function channelOptions(withAll) {
     var chs = (S.settings ? S.settings.channels_enabled : []).map(function (c) { return [c, chLabel(c)]; });
     return withAll ? [['', 'Semua Channel']].concat(chs) : chs;
   }
-  function deltaHtml(v, suffix) {
+  /** invert: true bila naik itu buruk (mis. pengeluaran) → naik merah, turun hijau. */
+  function deltaHtml(v, suffix, invert) {
     if (v === null || v === undefined) return '<div class="delta faint">Belum ada pembanding</div>';
-    return '<div class="delta ' + (v >= 0 ? 'up' : 'down') + '">' + pct(v) + ' ' + esc(suffix || '') + '</div>';
+    return '<div class="delta ' + ((v >= 0) !== !!invert ? 'up' : 'down') + '">' + pct(v) + ' ' + esc(suffix || '') + '</div>';
   }
 
   /* --------------------------------------------------------- toast & sheet */
@@ -582,7 +594,7 @@
     var handled = false;
     if (closeSheet(true)) handled = true;
     else if (S.stack.length > 1) { S.stack.pop(); render(); handled = true; }
-    else if (S.user && S.stack[0] && S.stack[0].name !== 'dashboard') { S.stack = [{ name: 'dashboard', params: {} }]; render(); handled = true; }
+    else if (S.user && S.stack[0] && S.stack[0].name !== homeTab()) { S.stack = [{ name: homeTab(), params: {} }]; render(); handled = true; }
     if (handled) histPush();
   });
 
@@ -598,14 +610,14 @@
   }
   function back() {
     if (S.stack.length > 1) { S.stack.pop(); histBackSilently(); render(); }
-    else if (S.stack[0] && S.stack[0].name !== 'dashboard') go('dashboard');
+    else if (S.stack[0] && S.stack[0].name !== homeTab()) go(homeTab());
   }
   function current() { return S.stack[S.stack.length - 1]; }
 
   function render() {
     if (!S.user) { renderLogin(); return; }
     var top = current();
-    if (!top) { go('dashboard'); return; }
+    if (!top) { go(homeTab()); return; }
     var def = SCREENS[top.name];
     if (!def) { app.innerHTML = screenWrap('x', hdrLight('Tidak ditemukan') + emptyState('alert', 'Halaman tidak ditemukan', '')); return; }
     if (def.role && !hasRole(def.role)) {
@@ -712,7 +724,7 @@
       if (b.dashboard) { S.data['dash|today'] = { status: 'ok', value: b.dashboard, at: Date.now() }; dcSet('dash|today', b.dashboard); }
       if (b.catalog) dcSet('catalog', b.catalog);
       store('bootc', { user: s.user, settings: s.settings, enums: s.enums, labels: s.labels, today: s.today });
-      if (!opts.background || !S.stack.length) S.stack = [{ name: 'dashboard', params: {} }];
+      if (!opts.background || !S.stack.length || (kasirMode() && S.stack[0].name === 'dashboard')) S.stack = [{ name: homeTab(), params: {} }];
       render();
       if (!b.catalog) ensureCatalog().catch(function () { /* ditampilkan di layar kasir */ });
       // Tab yang paling sering dibuka berikutnya diambil di belakang → tidak ada skeleton saat dibuka.
@@ -741,7 +753,7 @@
       // Area branding hanya gambar logo; nama toko tetap ada untuk pembaca layar (tidak terlihat).
       '<div class="brand"><h1 class="sr-only">' + esc(p.store_name || 'Dash Food') + '</h1>' + logo + '</div>' +
       '<form class="panel" data-submit="login" novalidate>' +
-      '<div><h1>Masuk ke Aplikasi</h1><p class="muted small" style="text-align:center;margin-top:4px">Kelola penjualan dengan mudah</p></div>' +
+      '<div><h1>' + (KASIR_APP ? 'Masuk ke Kasir' : 'Masuk ke Aplikasi') + '</h1><p class="muted small" style="text-align:center;margin-top:4px">' + (KASIR_APP ? 'Aplikasi kasir untuk booth' : 'Kelola penjualan dengan mudah') + '</p></div>' +
       (p.has_users === false ? '<div class="info-box warn">' + icon('alert') + '<span>Belum ada akun. Admin perlu menjalankan <b>setupInitialAdmin()</b> di editor Apps Script.</span></div>' : '') +
       '<div class="input-wrap">' + icon('user') + '<input class="input" name="username" autocomplete="username" autocapitalize="none" placeholder="Username" aria-label="Username" required></div>' +
       '<div class="input-wrap">' + icon('lock') + '<input class="input" name="password" type="password" autocomplete="current-password" placeholder="Password" aria-label="Password" required style="padding-right:52px">' +
@@ -755,21 +767,24 @@
   }
 
   /* ---------- 2. Dashboard ---------- */
+  var DASH_PERIODS = ['today', 'yesterday', '7d', 'week', 'last_week', 'month', 'last_month'];
   SCREENS.dashboard = {
+    role: 'MANAGER', title: 'Beranda',
     render: function () {
       var key = 'dash|' + S.dash.period;
       var d = useData(key, function () { return api('dashboard', { period: S.dash.period }); });
       var low = d.status === 'ok' ? d.value.low_stock.length : 0;
       var hdr = '<header class="dash-hdr">' +
         '<div class="grow"><h1>Halo, ' + esc(S.user.display_name) + '</h1>' +
-        '<p class="small muted ellipsis">Semangat jualannya hari ini!</p></div>' +
-        selectHtml('class="select compact" data-change="dashPeriod" aria-label="Periode"', PERIODS.filter(function (p) { return ['today', '7d', 'month'].indexOf(p[0]) !== -1; }), S.dash.period) +
+        '<p class="small muted ellipsis">' + (S.dash.period === 'today' ? 'Semangat jualannya hari ini!' : 'Evaluasi ' + esc((PERIODS.filter(function (p) { return p[0] === S.dash.period; })[0] || ['', ''])[1].toLowerCase())) + '</p></div>' +
+        selectHtml('class="select compact" data-change="dashPeriod" aria-label="Periode"', PERIODS.filter(function (p) { return DASH_PERIODS.indexOf(p[0]) !== -1; }), S.dash.period) +
         '<button class="icon-btn" data-act="lowStock" aria-label="Stok rendah: ' + low + ' item">' + icon('bell') + (low ? '<span class="badge-dot">' + low + '</span>' : '') + '</button></header>';
       var body = guard(d, key);
       if (!body) {
         var v = d.value, k = v.kpi;
-        var cmp = { today: 'dari kemarin', '7d': 'dari 7 hari sebelumnya', month: 'dari periode sebelumnya' }[S.dash.period] || '';
-        body = '<div class="kpi-grid">' +
+        var cmp = CMP_TEXT[S.dash.period] || '';
+        body = (v.range && S.dash.period !== 'today' ? '<p class="small muted dash-range">' + icon('calendar', 'icon-sm') + '<span>' + esc(v.range.label) + ': <b>' + esc(fmtRange(v.range.from, v.range.to)) + '</b> · dibandingkan ' + esc(fmtRange(v.range.prev_from, v.range.prev_to)) + '</span></p>' : '') +
+          '<div class="kpi-grid">' +
           kpiCard('green', 'trend', 'Omzet', rp(k.omzet), deltaHtml(k.omzet_change_pct, cmp)) +
           kpiCard('purple', 'receipt', 'Transaksi', num(k.transaksi), deltaHtml(k.transaksi_change_pct, cmp)) +
           kpiCard('orange', 'wallet', 'Laba Bersih', rp(k.laba_bersih), '<button class="btn-text xs" data-act="explain" data-k="laba_bersih">Apa ini?</button>') +
@@ -780,7 +795,7 @@
               '</div><div class="cnt">' + c.count + ' trx</div></div>';
           }).join('') + '</div></section>' +
           '<section class="card"><div class="section-title" style="padding:16px 16px 4px">Produk Terlaris' +
-          (hasRole('MANAGER') ? '<button class="link" data-act="nav" data-to="reportProducts">Lihat semua</button>' : '') + '</div>' +
+          (hasRole('MANAGER') ? '<button class="link" data-act="dashToReport">Lihat semua</button>' : '') + '</div>' +
           (v.top_products.length ? '<div class="list">' + v.top_products.map(function (t) {
             return '<div class="list-item">' + productImgById(t.product_id, t.product_name, 'thumb-sm') + '<div class="grow"><div class="title ellipsis">' + esc(t.label) +
               '</div><div class="meta">' + rp(t.revenue) + '</div></div><div class="semibold num">' + num(t.quantity) + ' ' + esc(t.unit || '') + '</div></div>';
@@ -1065,9 +1080,10 @@
         var o = d.value;
         body = '<div class="card" style="overflow:hidden">' + receiptHtml(o) + '</div>' +
           (o.status === 'COMPLETED' || o.status === 'CANCELLED' ? '<div class="receipt-actions">' +
-            '<button class="btn btn-outline" data-act="printReceipt" data-id="' + o.order_id + '">' + icon('printer') + 'Cetak</button>' +
+            '<button class="btn ' + (prnCfg().set ? 'btn-primary' : 'btn-outline') + '" data-act="printReceipt" data-id="' + o.order_id + '">' + icon('printer') + 'Cetak</button>' +
             '<button class="btn btn-outline" data-act="downloadPdf" data-id="' + o.order_id + '">' + icon('file') + 'Download PDF</button>' +
             '<button class="btn btn-outline" data-act="shareReceipt" data-id="' + o.order_id + '">' + icon('share') + 'Kirim Gambar</button></div>' : '') +
+          (prnCfg().set ? '' : '<button class="btn btn-text btn-block" data-act="printerSetup">' + icon('printer', 'icon-sm') + ' Atur printer Bluetooth di HP ini</button>') +
           (params.fresh ? '<button class="btn btn-primary btn-block btn-lg" data-act="tab" data-tab="kasir">Transaksi Baru</button>' : '');
       }
       return screenWrap('receipt', hdrLight('Struk Transaksi') + '<main class="content" style="max-width:520px;margin:0 auto">' + body + '</main>');
@@ -1456,22 +1472,229 @@
     role: 'MANAGER', title: 'Laporan',
     render: function () {
       return screenWrap('reports', hdrLight('Laporan') + '<main class="content"><div class="card" style="overflow:hidden"><div class="list">' +
-        menuRow('reportSales', 'chart', 'blue', 'Laporan Penjualan', 'Omzet harian, channel, metode bayar') +
-        menuRow('reportProducts', 'box', 'orange', 'Laporan Produk', 'Produk & topping terlaris') +
-        menuRow('reportFinance', 'wallet', 'green', 'Laporan Keuangan', 'Omzet, pengeluaran, laba bersih sederhana') + '</div></div></main>', { nav: true });
+        menuRow('reportSales', 'chart', 'blue', 'Laporan Penjualan', 'Omzet harian & mingguan, channel, metode bayar') +
+        menuRow('reportProducts', 'box', 'orange', 'Laporan Produk', 'Produk terlaris & naik-turunnya') +
+        menuRow('reportFinance', 'wallet', 'green', 'Laporan Keuangan', 'Omzet vs pengeluaran, untung/rugi') + '</div></div>' +
+        '<div class="info-box">' + icon('info') + '<span>Tips evaluasi: tiap Senin buka <b>Minggu lalu</b>, tiap awal bulan buka <b>Bulan lalu</b>. Semua laporan bisa diunduh sebagai Excel atau PDF.</span></div></main>', { nav: true });
     }
   };
-  function repFilters(withChannel) {
-    return '<div class="row" style="gap:8px">' + selectHtml('class="select compact grow" data-change="repPeriod" aria-label="Periode"', PERIODS, S.rep.period) +
-      (withChannel ? selectHtml('class="select compact grow" data-change="repChannel" aria-label="Channel"', channelOptions(true), S.rep.channel) : '') + '</div>';
+
+  /* ---- Periode laporan ---- */
+  var REP_CHIPS = [['week', 'Minggu ini'], ['last_week', 'Minggu lalu'], ['month', 'Bulan ini'], ['last_month', 'Bulan lalu'],
+    ['7d', '7 Hari'], ['30d', '30 Hari'], ['today', 'Hari ini'], ['yesterday', 'Kemarin']];
+  var PREV_NAME = { today: 'Kemarin', yesterday: 'Hari sebelumnya', '7d': '7 hari sebelumnya', '30d': '30 hari sebelumnya',
+    week: 'Minggu lalu', last_week: 'Minggu sebelumnya', month: 'Bulan lalu', last_month: 'Bulan sebelumnya' };
+  var CMP_TEXT = { today: 'dari kemarin', yesterday: 'dari hari sebelumnya', '7d': 'dari 7 hari sebelumnya', '30d': 'dari 30 hari sebelumnya',
+    week: 'dari minggu lalu', last_week: 'dari minggu sebelumnya', month: 'dari bulan lalu', last_month: 'dari bulan sebelumnya' };
+  var WD = ['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min'];
+  var WD_FULL = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu'];
+  function wdIdx(d) { var p = String(d).split('-'); return (new Date(Date.UTC(+p[0], +p[1] - 1, +p[2])).getUTCDay() + 6) % 7; }
+  function dayNum(d) { return parseInt(String(d).substring(8, 10), 10); }
+  function fmtDay(d) { return WD[wdIdx(d)] + ', ' + dayNum(d) + ' ' + MONTHS[parseInt(String(d).substring(5, 7), 10) - 1]; }
+  /** "9–15 Nov 2026" · "27 Okt – 2 Nov 2026" · "1 Nov 2026" */
+  function fmtRange(a, b) {
+    if (!a || a === b) return fmtDate(a);
+    var pa = a.split('-'), pb = b.split('-');
+    if (pa[0] === pb[0] && pa[1] === pb[1]) return +pa[2] + '–' + fmtDate(b);
+    if (pa[0] === pb[0]) return +pa[2] + ' ' + MONTHS[+pa[1] - 1] + ' – ' + fmtDate(b);
+    return fmtDate(a) + ' – ' + fmtDate(b);
   }
+  function prevName(range) { return PREV_NAME[range.period] || 'Periode sebelumnya'; }
+  function rangeText(range) { return range.label + ' (' + fmtRange(range.from, range.to) + ')'; }
+  function prevText(range) { return prevName(range) + ' (' + fmtRange(range.prev_from, range.prev_to) + ')'; }
+  /** Perubahan % sederhana; null bila pembanding 0 (tidak bisa dihitung). */
+  function chg(cur, prev) { return prev ? Math.round((cur - prev) / Math.abs(prev) * 1000) / 10 : null; }
+  function pctTxt(v) { return String(v).replace('.', ','); }
+
+  function repFilters(withChannel) {
+    return '<div class="chips bleed" role="radiogroup" aria-label="Periode laporan">' + REP_CHIPS.map(function (c) {
+      var on = S.rep.period === c[0];
+      return '<button class="chip' + (on ? ' active' : '') + '" role="radio" aria-checked="' + on + '" data-act="repPeriod" data-p="' + c[0] + '">' + c[1] + '</button>';
+    }).join('') + '</div>' +
+      (withChannel ? selectHtml('class="select compact" data-change="repChannel" aria-label="Channel"', channelOptions(true), S.rep.channel) : '');
+  }
+  /** Kartu periode: apa yang sedang dilihat, dibandingkan dengan apa, dan tombol unduh. */
+  function repHead(range, kind) {
+    return '<section class="card pad rep-head"><div class="row between" style="align-items:flex-start;gap:12px"><div class="grow" style="min-width:0">' +
+      '<div class="semibold">' + esc(range.label) + ' · ' + esc(fmtRange(range.from, range.to)) + '</div>' +
+      '<div class="xs muted">Dibandingkan dengan ' + esc(prevText(range)) + '</div></div>' + icon('calendar', 'icon-sm faint') + '</div>' +
+      '<div class="row" style="gap:8px;margin-top:12px">' +
+      '<button class="btn btn-outline btn-sm grow" data-act="repExport" data-fmt="xlsx" data-kind="' + kind + '">' + icon('sheet') + 'Unduh Excel</button>' +
+      '<button class="btn btn-outline btn-sm grow" data-act="repExport" data-fmt="pdf" data-kind="' + kind + '">' + icon('file') + 'Unduh PDF</button></div></section>';
+  }
+  function insightsHtml(list) {
+    if (!list.length) return '';
+    return '<section class="card pad stack insights"><div class="section-title">Kesimpulan Singkat</div><ul>' +
+      list.map(function (t) { return '<li><span class="ins-dot ' + (t.tone || '') + '" aria-hidden="true"></span><span>' + esc(t.text) + '</span></li>'; }).join('') + '</ul></section>';
+  }
+
+  /* ---- Pengelompokan harian → mingguan ---- */
+  function granOf(days) { return S.rep.gran || (days > 14 ? 'week' : 'day'); }
+  function granToggle(days, id) {
+    if (days <= 7) return '';
+    var g = granOf(days);
+    return '<div class="seg gran" role="radiogroup" aria-label="Tampilan grafik">' + [['day', 'Per hari'], ['week', 'Per minggu']].map(function (o) {
+      return '<button class="seg-btn' + (g === o[0] ? ' active' : '') + '" role="radio" aria-checked="' + (g === o[0]) + '" data-act="repGran" data-g="' + o[0] + '">' + o[1] + '</button>';
+    }).join('') + '</div>';
+  }
+  /** rows: deret harian. Hasil: [{from, to, label, sub, idx:[...]}] — minggu = potongan 7 hari dari awal periode. */
+  function buckets(rows, gran) {
+    if (gran !== 'week') return rows.map(function (r, i) {
+      return { from: r.date, to: r.date, label: rows.length <= 7 ? WD[wdIdx(r.date)] : String(dayNum(r.date)), sub: rows.length <= 7 ? String(dayNum(r.date)) : '', idx: [i] };
+    });
+    var out = [];
+    for (var i = 0; i < rows.length; i += 7) {
+      var idx = []; for (var j = i; j < Math.min(i + 7, rows.length); j++) idx.push(j);
+      var a = rows[idx[0]].date, b = rows[idx[idx.length - 1]].date;
+      out.push({ from: a, to: b, label: dayNum(a) + '–' + dayNum(b), sub: MONTHS[parseInt(b.substring(5, 7), 10) - 1], idx: idx });
+    }
+    return out;
+  }
+  function sumIdx(rows, idx, f) { return idx.reduce(function (s, i) { return s + (rows[i] ? (Number(rows[i][f]) || 0) : 0); }, 0); }
+  function bucketName(b) { return b.from === b.to ? fmtDay(b.from) : fmtRange(b.from, b.to); }
+
+  /* ---- Grafik batang SVG (satu sumbu, batang tipis, ujung membulat, garis grid tipis) ---- */
+  var CHART_SPECS = {};
+  function niceStep(span, count) {
+    if (span <= 0) return 1;
+    var raw = span / count, p = Math.pow(10, Math.floor(Math.log10(raw))), f = raw / p;
+    return (f <= 1 ? 1 : f <= 2 ? 2 : f <= 2.5 ? 2.5 : f <= 5 ? 5 : 10) * p;
+  }
+  function axisRp(v) { return v === 0 ? '0' : rpShort(v).replace('Rp ', ''); }
+  function barPath(x, w, y0, y1) {
+    var h = Math.abs(y0 - y1); if (h < 0.5) return '';
+    var r = Math.min(4, w / 2, h);
+    if (y1 < y0) return 'M' + x + ',' + y0 + 'V' + (y1 + r) + 'Q' + x + ',' + y1 + ' ' + (x + r) + ',' + y1 + 'H' + (x + w - r) + 'Q' + (x + w) + ',' + y1 + ' ' + (x + w) + ',' + (y1 + r) + 'V' + y0 + 'Z';
+    return 'M' + x + ',' + y0 + 'V' + (y1 - r) + 'Q' + x + ',' + y1 + ' ' + (x + r) + ',' + y1 + 'H' + (x + w - r) + 'Q' + (x + w) + ',' + y1 + ' ' + (x + w) + ',' + (y1 - r) + 'V' + y0 + 'Z';
+  }
+  /**
+   * spec: { id, aria, labels:[{label, sub}], series:[{name, cls, values, signed}], prev:{name, values}|null,
+   *         detail: fn(i) → html, defaultSel }
+   */
+  function colChart(spec) {
+    CHART_SPECS[spec.id] = spec;
+    var n = spec.labels.length;
+    var hasData = spec.series.some(function (x) { return x.values.some(function (v) { return v; }); }) ||
+      (spec.prev && spec.prev.values.some(function (v) { return v; }));
+    if (!n || !hasData) return '<p class="muted small c-empty">' + icon('chart', 'icon-sm') + '<span>Belum ada angka untuk digambar pada periode ini.</span></p>';
+    var W = 340, H = 186, L = 42, R = 6, T = 12, B = spec.labels.some(function (l) { return l.sub; }) ? 32 : 22;
+    var all = [0];
+    spec.series.forEach(function (s) { all = all.concat(s.values); });
+    if (spec.prev) all = all.concat(spec.prev.values.filter(function (v) { return v !== null && v !== undefined; }));
+    var lo = Math.min.apply(null, all), hi = Math.max.apply(null, all);
+    if (hi === lo) hi = lo + 100000;
+    var step = niceStep(hi - lo, 4), yMin = Math.floor(lo / step) * step, yMax = Math.ceil(hi / step) * step;
+    function y(v) { return T + (H - T - B) * (1 - (v - yMin) / (yMax - yMin)); }
+    var slot = (W - L - R) / n, k = spec.series.length, gap = k > 1 ? 2 : 0;
+    var bw = Math.max(2, Math.min(24, (slot * (n > 20 ? 0.66 : 0.58) - gap * (k - 1)) / k)), gw = bw * k + gap * (k - 1);
+    var sel = CHART_SEL(spec);
+    var out = '';
+    for (var g = yMin; g <= yMax + step / 2; g += step) {
+      out += '<line x1="' + L + '" x2="' + (W - R) + '" y1="' + y(g).toFixed(1) + '" y2="' + y(g).toFixed(1) + '" class="' + (Math.abs(g) < step / 1e6 ? 'c-zero' : 'c-grid') + '"/>' +
+        '<text class="c-lbl" x="' + (L - 6) + '" y="' + (y(g) + 3.5).toFixed(1) + '" text-anchor="end">' + esc(axisRp(Math.round(g))) + '</text>';
+    }
+    var every = n <= 8 ? 1 : n <= 16 ? 2 : Math.ceil(n / 7);
+    var base = y(Math.max(yMin, Math.min(0, yMax)));
+    for (var i = 0; i < n; i++) {
+      var cx = L + slot * i + slot / 2, x0 = cx - gw / 2;
+      if (i === sel) out += '<rect class="c-band" x="' + (L + slot * i + 1).toFixed(1) + '" y="' + T + '" width="' + Math.max(slot - 2, 1).toFixed(1) + '" height="' + (H - T - B) + '" rx="6"/>';
+      spec.series.forEach(function (s, si) {
+        var v = s.values[i] || 0, cls = s.signed ? (v < 0 ? 'c-bad' : 'c-good') : s.cls;
+        var p = barPath(+(x0 + si * (bw + gap)).toFixed(1), +bw.toFixed(1), +base.toFixed(1), +y(v).toFixed(1));
+        if (p) out += '<path d="' + p + '" class="' + cls + '"/>';
+      });
+      if (spec.prev && spec.prev.values[i] !== null && spec.prev.values[i] !== undefined) {
+        var py = y(spec.prev.values[i]).toFixed(1);
+        out += '<line x1="' + (cx - gw / 2 - 3).toFixed(1) + '" x2="' + (cx + gw / 2 + 3).toFixed(1) + '" y1="' + py + '" y2="' + py + '" class="c-prev"/>';
+      }
+      if (i % every === 0 || (n > 8 && i === n - 1 && (n - 1) % every > every / 2)) {
+        out += '<text class="c-lbl' + (i === sel ? ' sel' : '') + '" x="' + cx.toFixed(1) + '" y="' + (H - B + 13) + '" text-anchor="middle">' + esc(spec.labels[i].label) + '</text>' +
+          (spec.labels[i].sub ? '<text class="c-lbl" x="' + cx.toFixed(1) + '" y="' + (H - B + 25) + '" text-anchor="middle">' + esc(spec.labels[i].sub) + '</text>' : '');
+      }
+      out += '<rect x="' + (L + slot * i).toFixed(1) + '" y="0" width="' + slot.toFixed(1) + '" height="' + H + '" fill="transparent" data-act="chartPoint" data-c="' + spec.id + '" data-i="' + i + '" style="cursor:pointer"><title>' +
+        esc(spec.titleOf ? spec.titleOf(i) : spec.labels[i].label) + '</title></rect>';
+    }
+    var legend = '';
+    if (spec.series.length > 1 || spec.prev || spec.series[0].signed) {
+      legend = '<div class="c-legend">' + spec.series.map(function (s) {
+        return s.signed ? '<span><i class="sw c-good-bg"></i>Untung</span><span><i class="sw c-bad-bg"></i>Rugi</span>' : '<span><i class="sw ' + s.cls + '-bg"></i>' + esc(s.name) + '</span>';
+      }).join('') + (spec.prev ? '<span><i class="key-line"></i>' + esc(spec.prev.name) + '</span>' : '') + '</div>';
+    }
+    return legend + '<svg viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="' + esc(spec.aria) + '">' + out + '</svg>' +
+      '<div class="c-detail" aria-live="polite">' + spec.detail(sel) + '</div>' +
+      '<p class="xs faint c-hint">Ketuk batang untuk melihat angkanya.</p>';
+  }
+  function CHART_SEL(spec) {
+    var n = spec.labels.length, s = S.chartSel[spec.id];
+    if (typeof s === 'number' && s < n) return s;
+    if (spec.defaultSel !== undefined) return spec.defaultSel;
+    var vals = spec.series[0].values, best = n - 1;
+    vals.forEach(function (v, i) { if (v > vals[best]) best = i; });
+    return best;
+  }
+  function chartCard(id, title, sub, inner, toggle) {
+    return '<section class="card pad stack"><div class="section-title">' + esc(title) + '</div>' + (sub ? '<p class="xs muted" style="margin-top:-6px">' + esc(sub) + '</p>' : '') +
+      (toggle || '') + '<div class="chart-wrap" id="' + id + '">' + inner + '</div></section>';
+  }
+  function dline(k, v) { return '<div class="row between"><span class="muted">' + esc(k) + '</span><b class="num">' + v + '</b></div>'; }
+  function deltaInline(cur, prev) {
+    var c = chg(cur, prev);
+    return c === null ? '' : ' <span class="delta ' + (c >= 0 ? 'up' : 'down') + '">' + (c > 0 ? '+' : '') + pctTxt(c) + '%</span>';
+  }
+
   var CH_COLORS = { OFFLINE: '#5B8DEF', WHATSAPP: '#25D366', GOFOOD: '#EE2737', GRABFOOD: '#00B14F', SHOPEEFOOD: '#EE4D2D' };
   function channelBars(rows) {
     return rows.map(function (c) {
       return '<div class="bar-row"><span class="row" style="gap:8px;min-width:118px">' + brandMark(c.channel, '') + '<span class="small">' + esc(c.label) + '</span></span>' +
         '<span class="bar"><span style="width:' + Math.max(c.pct, c.omzet ? 2 : 0) + '%;background:' + (CH_COLORS[c.channel] || '#5B8DEF') + '"></span></span>' +
-        '<span class="small num right" style="min-width:86px"><b>' + String(c.pct).replace('.', ',') + '%</b><br><span class="xs faint">' + rpShort(c.omzet) + '</span></span></div>';
+        '<span class="small num right" style="min-width:86px"><b>' + pctTxt(c.pct) + '%</b><br><span class="xs faint">' + rpShort(c.omzet) + '</span></span></div>';
     }).join('');
+  }
+  /** Batang horizontal berperingkat + penanda abu-abu untuk periode sebelumnya (opsional). */
+  function rankBars(rows, cls) {
+    var max = Math.max.apply(null, [1].concat(rows.map(function (r) { return Math.max(r.value, r.prev || 0); })));
+    return '<div class="rank-bars">' + rows.map(function (r) {
+      return '<div class="rb"><div class="row between" style="gap:8px"><span class="small ellipsis">' + esc(r.label) + '</span><span class="small num nowrap"><b>' + esc(r.valueText) + '</b>' + (r.note || '') + '</span></div>' +
+        '<div class="rb-track"><span class="rb-fill ' + cls + '" style="width:' + (r.value ? Math.max(r.value / max * 100, 1.5) : 0) + '%"></span>' +
+        (r.prev ? '<span class="rb-prev" style="left:' + (r.prev / max * 100) + '%" title="' + esc(r.prevTitle || '') + '"></span>' : '') + '</div></div>';
+    }).join('') + '</div>';
+  }
+
+  /* ---- Laporan Penjualan ---- */
+  function salesModel(v, gran) {
+    var bs = buckets(v.daily, gran), pd = v.prev_daily || [];
+    return {
+      bs: bs,
+      omzet: bs.map(function (b) { return sumIdx(v.daily, b.idx, 'omzet'); }),
+      count: bs.map(function (b) { return sumIdx(v.daily, b.idx, 'count'); }),
+      prev: bs.map(function (b) { return b.idx.some(function (i) { return pd[i]; }) ? sumIdx(pd, b.idx, 'omzet') : null; })
+    };
+  }
+  function weekdayModel(daily) {
+    var sum = [0, 0, 0, 0, 0, 0, 0], cnt = [0, 0, 0, 0, 0, 0, 0], trx = [0, 0, 0, 0, 0, 0, 0];
+    daily.forEach(function (d) { var w = wdIdx(d.date); sum[w] += d.omzet; cnt[w] += 1; trx[w] += d.count; });
+    return { avg: sum.map(function (s, i) { return cnt[i] ? Math.round(s / cnt[i]) : 0; }), cnt: cnt, trx: trx };
+  }
+  function salesInsights(v) {
+    var s = v.summary, out = [], r = v.range;
+    var prevOmzet = (v.prev_daily || []).reduce(function (t, d) { return t + d.omzet; }, 0);
+    if (!s.transaksi) {
+      out.push({ text: 'Belum ada transaksi selesai pada ' + r.label.toLowerCase() + '.', tone: 'warn' });
+      return out;
+    }
+    var c = chg(s.omzet, prevOmzet);
+    out.push(c === null ? { text: 'Omzet ' + rp(s.omzet) + ' dari ' + num(s.transaksi) + ' transaksi. ' + prevName(r) + ' belum ada penjualan untuk dibandingkan.' }
+      : { text: 'Omzet ' + rp(s.omzet) + ', ' + (c >= 0 ? 'naik ' : 'turun ') + pctTxt(Math.abs(c)) + '% dibanding ' + prevName(r).toLowerCase() + ' (' + rp(prevOmzet) + ').', tone: c >= 0 ? 'good' : 'bad' });
+    if (v.daily.length > 1) {
+      var best = v.daily.reduce(function (b, d) { return d.omzet > b.omzet ? d : b; }, v.daily[0]);
+      var zero = v.daily.filter(function (d) { return !d.omzet; }).length;
+      out.push({ text: 'Hari paling ramai: ' + WD_FULL[wdIdx(best.date)] + ', ' + fmtDate(best.date) + ' (' + rp(best.omzet) + ', ' + best.count + ' transaksi).' });
+      out.push({ text: 'Rata-rata ' + rp(Math.round(s.omzet / v.daily.length)) + ' per hari dan ' + rp(s.rata_rata) + ' per transaksi.' });
+      if (zero) out.push({ text: zero + ' dari ' + v.daily.length + ' hari tidak ada penjualan.', tone: 'warn' });
+    }
+    var topCh = v.by_channel.slice().sort(function (a, b) { return b.omzet - a.omzet; })[0];
+    if (topCh && topCh.omzet && !v.channel) out.push({ text: 'Channel terbesar: ' + topCh.label + ' (' + pctTxt(topCh.pct) + '% dari omzet).' });
+    return out;
   }
   SCREENS.reportSales = {
     role: 'MANAGER', title: 'Laporan Penjualan',
@@ -1480,15 +1703,39 @@
       var d = useData(key, function () { return api('reportSales', { period: S.rep.period, channel: S.rep.channel }); });
       var body = guard(d, key);
       if (!body) {
-        var v = d.value, s = v.summary;
-        body = '<div class="kpi-grid">' + kpiCard('green', 'trend', 'Omzet', rp(s.omzet), deltaHtml(s.omzet_change_pct, 'vs periode sebelumnya')) +
-          kpiCard('blue', 'receipt', 'Transaksi', num(s.transaksi), deltaHtml(s.transaksi_change_pct, '')) +
+        var v = d.value, s = v.summary, cmp = CMP_TEXT[v.range.period] || '';
+        var g = granOf(v.range.days), m = salesModel(v, g), pn = prevName(v.range);
+        var main = colChart({
+          id: 'c-sales', aria: 'Grafik omzet ' + (g === 'week' ? 'per minggu' : 'per hari'),
+          labels: m.bs, series: [{ name: 'Omzet', cls: 'c-s1', values: m.omzet }], prev: { name: pn, values: m.prev },
+          titleOf: function (i) { return bucketName(m.bs[i]) + ': ' + rp(m.omzet[i]); },
+          detail: function (i) {
+            return '<div class="semibold">' + esc(bucketName(m.bs[i])) + '</div>' + dline('Omzet', rp(m.omzet[i]) + (m.prev[i] !== null ? deltaInline(m.omzet[i], m.prev[i]) : '')) +
+              dline('Transaksi', num(m.count[i])) + (m.prev[i] !== null ? dline(pn, rp(m.prev[i])) : '');
+          }
+        });
+        body = repHead(v.range, 'sales') + insightsHtml(salesInsights(v)) +
+          '<div class="kpi-grid">' + kpiCard('green', 'trend', 'Omzet', rp(s.omzet), deltaHtml(s.omzet_change_pct, cmp)) +
+          kpiCard('blue', 'receipt', 'Transaksi', num(s.transaksi), deltaHtml(s.transaksi_change_pct, cmp)) +
           kpiCard('purple', 'tag', 'Rata-rata/Trx', rp(s.rata_rata), '') + kpiCard('orange', 'percent', 'Total Diskon', rp(s.diskon), s.dibatalkan_setelah_bayar ? '<div class="delta down">' + s.dibatalkan_setelah_bayar + ' trx dibatalkan</div>' : '') + '</div>' +
-          '<section class="card pad stack"><div class="section-title">Pendapatan Harian</div><div class="chart-wrap" id="chart">' + lineChart(v.daily) + '</div></section>' +
-          '<section class="card pad stack"><div class="section-title">Penjualan per Channel</div>' + (s.transaksi ? channelBars(v.by_channel) : '<p class="muted small">Belum ada transaksi.</p>') + '</section>' +
-          (v.by_method.length ? '<section class="card pad stack"><div class="section-title">Metode Pembayaran</div>' + v.by_method.map(function (m) {
-            return '<div class="row between">' + '<span class="row" style="gap:8px">' + brandMark(m.method) + esc(m.label) + '</span><span class="num right"><b>' + rp(m.omzet) + '</b><br><span class="xs faint">' + m.count + ' trx</span></span></div>';
-          }).join('') + '</section>' : '') + defNote(v.definitions, ['omzet', 'transaksi']);
+          chartCard('c-sales', g === 'week' ? 'Omzet per Minggu' : 'Omzet per Hari', 'Batang = ' + v.range.label.toLowerCase() + ' · garis abu-abu = ' + pn.toLowerCase(), main, granToggle(v.range.days));
+        if (v.daily.length >= 7) {
+          var wm = weekdayModel(v.daily);
+          var bestW = wm.avg.reduce(function (b, x, i) { return x > wm.avg[b] ? i : b; }, 0);
+          body += chartCard('c-wd', 'Hari Paling Ramai', 'Rata-rata omzet per hari dalam seminggu', colChart({
+            id: 'c-wd', aria: 'Rata-rata omzet per hari dalam seminggu', defaultSel: bestW,
+            labels: WD.map(function (w) { return { label: w }; }), series: [{ name: 'Rata-rata omzet', cls: 'c-s1', values: wm.avg }], prev: null,
+            titleOf: function (i) { return WD_FULL[i] + ': ' + rp(wm.avg[i]); },
+            detail: function (i) {
+              return '<div class="semibold">' + WD_FULL[i] + '</div>' + dline('Rata-rata omzet', rp(wm.avg[i])) +
+                dline('Rata-rata transaksi', wm.cnt[i] ? pctTxt(Math.round(wm.trx[i] / wm.cnt[i] * 10) / 10) : '0') + '<div class="xs faint">Dihitung dari ' + wm.cnt[i] + ' hari ' + WD_FULL[i] + ' di periode ini.</div>';
+            }
+          }));
+        }
+        body += '<section class="card pad stack"><div class="section-title">Penjualan per Channel</div>' + (s.transaksi ? channelBars(v.by_channel) : '<p class="muted small">Belum ada transaksi.</p>') + '</section>' +
+          (v.by_method.length ? '<section class="card pad stack"><div class="section-title">Metode Pembayaran</div>' + rankBars(v.by_method.slice().sort(function (a, b) { return b.omzet - a.omzet; }).map(function (x) {
+            return { label: x.label, value: x.omzet, valueText: rp(x.omzet), note: ' <span class="xs faint">· ' + x.count + ' trx</span>' };
+          }), 'c-s1-bg') + '</section>' : '') + defNote(v.definitions, ['omzet', 'transaksi']);
       }
       return screenWrap('reportSales', hdrLight('Laporan Penjualan') + '<main class="content">' + repFilters(true) + body + '</main>', { nav: true });
     }
@@ -1497,34 +1744,26 @@
     return '<details class="card pad small"><summary class="semibold" style="min-height:28px;cursor:pointer">Definisi metrik</summary><ul style="margin:8px 0 0;padding-left:18px" class="muted">' +
       keys.map(function (k) { return '<li>' + esc(defs[k]) + '</li>'; }).join('') + '<li>Sumber: sheet ORDERS, ORDER_ITEMS, PAYMENTS, EXPENSES.</li></ul></details>';
   }
-  function lineChart(daily) {
-    if (!daily.length) return '';
-    var W = 340, H = 170, L = 40, R = 10, T = 26, B = 26;
-    var max = Math.max.apply(null, daily.map(function (d) { return d.omzet; }));
-    var niceMax = max <= 0 ? 100000 : Math.ceil(max / Math.pow(10, Math.floor(Math.log10(max)))) * Math.pow(10, Math.floor(Math.log10(max)));
-    var n = daily.length, step = n > 1 ? (W - L - R) / (n - 1) : 0;
-    function x(i) { return n > 1 ? L + i * step : (L + W - R) / 2; }
-    function y(v) { return T + (H - T - B) * (1 - v / niceMax); }
-    var pts = daily.map(function (d, i) { return x(i).toFixed(1) + ',' + y(d.omzet).toFixed(1); });
-    var sel = S.chartSel !== null && S.chartSel < n ? S.chartSel : daily.reduce(function (bi, d, i) { return d.omzet > daily[bi].omzet ? i : bi; }, 0);
-    var grid = [0, .5, 1].map(function (f) {
-      var gv = niceMax * f;
-      return '<line x1="' + L + '" x2="' + (W - R) + '" y1="' + y(gv) + '" y2="' + y(gv) + '" class="c-grid"/><text class="c-lbl" x="' + (L - 6) + '" y="' + (y(gv) + 4) + '" font-size="10" text-anchor="end">' + esc(rpShort(gv).replace('Rp ', '')) + '</text>';
-    }).join('');
-    var every = Math.ceil(n / 7);
-    var labels = daily.map(function (d, i) {
-      return (i % every === 0 || i === n - 1) ? '<text x="' + x(i) + '" y="' + (H - 6) + '" font-size="10" text-anchor="middle" class="c-lbl">' + fmtDateShort(d.date) + '</text>' : '';
-    }).join('');
-    var dots = daily.map(function (d, i) {
-      return '<circle cx="' + x(i) + '" cy="' + y(d.omzet) + '" r="' + (i === sel ? 5 : 3.5) + '" class="c-dot' + (i === sel ? ' sel' : '') + '" stroke-width="1.5"/>' +
-        '<rect x="' + (x(i) - Math.max(step / 2, 12)) + '" y="' + T + '" width="' + Math.max(step, 24) + '" height="' + (H - T - B) + '" fill="transparent" data-act="chartPoint" data-i="' + i + '" style="cursor:pointer"><title>' + fmtDate(d.date) + ': ' + rp(d.omzet) + '</title></rect>';
-    }).join('');
-    var sd = daily[sel];
-    var tipX = Math.min(Math.max(x(sel), L + 40), W - R - 40);
-    return '<svg viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Grafik pendapatan harian">' + grid + labels +
-      '<polyline points="' + pts.join(' ') + '" fill="none" class="c-line" stroke-width="2.4" stroke-linejoin="round"/>' + dots +
-      '<g><rect x="' + (tipX - 44) + '" y="' + Math.max(y(sd.omzet) - 30, 0) + '" width="88" height="20" rx="5" class="c-tip"/><text x="' + tipX + '" y="' + (Math.max(y(sd.omzet) - 30, 0) + 14) + '" font-size="10.5" font-weight="700" text-anchor="middle" class="c-tip-t">' + esc(rp(sd.omzet)) + '</text></g></svg>' +
-      '<p class="xs faint" style="text-align:center">' + esc(fmtDate(sd.date)) + ' · ' + sd.count + ' transaksi · ketuk titik untuk detail</p>';
+
+  /* ---- Laporan Produk ---- */
+  function productInsights(v) {
+    var out = [], pn = prevName(v.range);
+    if (!v.by_product.length) return [{ text: 'Belum ada produk terjual pada ' + v.range.label.toLowerCase() + '.', tone: 'warn' }];
+    var top = v.by_product[0];
+    out.push({ text: 'Produk paling laku: ' + top.product_name + ' (' + pctTxt(v.total_revenue ? Math.round(top.revenue / v.total_revenue * 1000) / 10 : 0) + '% pendapatan, ' + num(top.quantity) + ' ' + (top.unit || '') + ').' });
+    var c = chg(v.total_revenue, v.prev_total_revenue || 0);
+    if (c !== null) out.push({ text: 'Total pendapatan produk ' + (c >= 0 ? 'naik ' : 'turun ') + pctTxt(Math.abs(c)) + '% dibanding ' + pn.toLowerCase() + '.', tone: c >= 0 ? 'good' : 'bad' });
+    var moves = v.by_product.map(function (p) { var pr = (v.prev_by_product || {})[p.product_id]; return { p: p, c: pr ? chg(p.revenue, pr.revenue) : null }; })
+      .filter(function (x) { return x.c !== null; });
+    if (moves.length > 1) {
+      moves.sort(function (a, b) { return b.c - a.c; });
+      if (moves[0].c > 0) out.push({ text: 'Naik paling banyak: ' + moves[0].p.product_name + ' (+' + pctTxt(moves[0].c) + '%).', tone: 'good' });
+      var last = moves[moves.length - 1];
+      if (last.c < 0) out.push({ text: 'Turun paling banyak: ' + last.p.product_name + ' (' + pctTxt(last.c) + '%). Coba cek stok atau promosinya.', tone: 'bad' });
+    }
+    var gone = Object.keys(v.prev_by_product || {}).filter(function (id) { return !v.by_product.some(function (p) { return p.product_id === id; }); });
+    if (gone.length) out.push({ text: gone.length + ' produk yang laku di ' + pn.toLowerCase() + ' belum terjual di periode ini.', tone: 'warn' });
+    return out;
   }
   SCREENS.reportProducts = {
     role: 'MANAGER', title: 'Laporan Produk',
@@ -1533,26 +1772,46 @@
       var d = useData(key, function () { return api('reportProducts', { period: S.rep.period, channel: S.rep.channel }); });
       var body = guard(d, key);
       if (!body) {
-        var v = d.value, max = v.rows.length ? v.rows[0].revenue : 0;
-        body = '<div class="card pad row between"><div><div class="small muted">Total pendapatan produk</div><div class="bold num" style="font-size:20px">' + rp(v.total_revenue) + '</div></div><div class="right"><div class="small muted">Terjual</div><div class="bold num">' + num(v.total_quantity) + '</div></div></div>' +
-          (v.rows.length ? '<div class="card" style="overflow:hidden"><div class="list">' + v.rows.map(function (r) {
+        var v = d.value, max = v.rows.length ? v.rows[0].revenue : 0, pn = prevName(v.range), pbp = v.prev_by_product || {};
+        body = repHead(v.range, 'products') + insightsHtml(productInsights(v)) +
+          '<div class="card pad row between"><div><div class="small muted">Total pendapatan produk</div><div class="bold num" style="font-size:20px">' + rp(v.total_revenue) + '</div>' +
+          deltaHtml(chg(v.total_revenue, v.prev_total_revenue || 0), CMP_TEXT[v.range.period]) + '</div><div class="right"><div class="small muted">Terjual</div><div class="bold num">' + num(v.total_quantity) + '</div></div></div>';
+        if (v.by_product.length) {
+          body += '<section class="card pad stack"><div class="section-title">Pendapatan per Produk</div><p class="xs muted" style="margin-top:-6px">Batang = periode ini · garis abu-abu = ' + esc(pn.toLowerCase()) + '</p>' +
+            '<div class="c-legend"><span><i class="sw c-s1-bg"></i>Periode ini</span><span><i class="key-line v"></i>' + esc(pn) + '</span></div>' +
+            rankBars(v.by_product.map(function (p) {
+              var pr = pbp[p.product_id];
+              return { label: p.product_name, value: p.revenue, valueText: rpShort(p.revenue), prev: pr ? pr.revenue : 0, prevTitle: pn + ': ' + rp(pr ? pr.revenue : 0),
+                note: pr ? deltaInline(p.revenue, pr.revenue) : ' <span class="xs faint">baru</span>' };
+            }), 'c-s1-bg') + '</section>';
+        }
+        body += (v.rows.length ? '<section class="card" style="overflow:hidden"><div class="section-title" style="padding:14px 16px 0">Rincian per Varian</div><div class="list">' + v.rows.map(function (r) {
             return '<div class="list-item">' + productImgById(r.product_id, r.product_name, 'thumb') + '<div class="grow"><div class="row between"><span class="title ellipsis">' + esc(r.label) + '</span><span class="xs faint num">' + num(r.quantity) + ' ' + esc(r.unit) + '</span></div>' +
               '<div class="row" style="gap:8px;margin-top:6px"><span class="bar grow"><span style="width:' + (max ? Math.max(r.revenue / max * 100, 2) : 0) + '%"></span></span><span class="small semibold num">' + rp(r.revenue) + '</span></div></div></div>';
-          }).join('') + '</div></div>' : emptyState('box', 'Belum ada penjualan', 'Tidak ada produk terjual pada periode ini.')) + defNote(v.definitions, ['pendapatan_produk']);
+          }).join('') + '</div></section>' : emptyState('box', 'Belum ada penjualan', 'Tidak ada produk terjual pada periode ini.')) + defNote(v.definitions, ['pendapatan_produk']);
       }
       return screenWrap('reportProducts', hdrLight('Laporan Produk') + '<main class="content">' + repFilters(true) + body + '</main>', { nav: true });
     }
   };
-  var DONUT = ['#C8553D', '#F2A541', '#5B8DEF', '#22A06B', '#8E6CEF', '#E26D9A', '#7B5B46'];
-  function donut(rows) {
-    var R = 54, C = 2 * Math.PI * R, off = 0;
-    var segs = rows.map(function (r, i) {
-      var len = C * r.pct / 100;
-      var s = '<circle r="' + R + '" cx="70" cy="70" fill="none" stroke="' + DONUT[i % DONUT.length] + '" stroke-width="22" stroke-dasharray="' + len.toFixed(2) + ' ' + (C - len).toFixed(2) + '" stroke-dashoffset="' + (-off).toFixed(2) + '" transform="rotate(-90 70 70)"/>';
-      off += len;
-      return s;
-    }).join('');
-    return '<svg viewBox="0 0 140 140" style="width:140px;height:140px;flex:none" role="img" aria-label="Komposisi pengeluaran">' + segs + '</svg>';
+
+  /* ---- Laporan Keuangan ---- */
+  function financeModel(v, gran) {
+    var daily = v.daily || [], bs = buckets(daily, gran); // v.daily kosong bila backend belum di-deploy ulang (v1.5)
+    var om = bs.map(function (b) { return sumIdx(daily, b.idx, 'omzet'); }), ex = bs.map(function (b) { return sumIdx(daily, b.idx, 'pengeluaran'); });
+    return { bs: bs, omzet: om, exp: ex, laba: om.map(function (o, i) { return o - ex[i]; }) };
+  }
+  function financeInsights(v) {
+    var s = v.summary, out = [], pn = prevName(v.range);
+    if (!s.omzet && !s.pengeluaran) return [{ text: 'Belum ada omzet maupun pengeluaran tercatat pada ' + v.range.label.toLowerCase() + '.', tone: 'warn' }];
+    out.push(s.laba_bersih >= 0 ? { text: 'Untung bersih sederhana ' + rp(s.laba_bersih) + ' (omzet ' + rp(s.omzet) + ' dikurangi pengeluaran ' + rp(s.pengeluaran) + ').', tone: 'good' }
+      : { text: 'Rugi ' + rp(-s.laba_bersih) + ': pengeluaran (' + rp(s.pengeluaran) + ') lebih besar dari omzet (' + rp(s.omzet) + ').', tone: 'bad' });
+    if (s.omzet) out.push({ text: 'Dari setiap Rp 100.000 omzet, sekitar ' + rp(Math.round(s.pengeluaran / s.omzet * 100000)) + ' terpakai untuk pengeluaran.' });
+    var dl = s.laba_bersih - s.laba_bersih_prev;
+    if (s.laba_bersih_prev || s.laba_bersih) out.push({ text: 'Dibanding ' + pn.toLowerCase() + ' (' + rp(s.laba_bersih_prev) + '), laba ' + (dl >= 0 ? 'lebih baik ' : 'lebih buruk ') + rp(Math.abs(dl)) + '.', tone: dl >= 0 ? 'good' : 'bad' });
+    if (v.expense_by_category.length) out.push({ text: 'Pengeluaran terbesar: ' + v.expense_by_category[0].category + ' (' + pctTxt(v.expense_by_category[0].pct) + '% dari total pengeluaran).' });
+    var daily = v.daily || [], rugi = daily.filter(function (d) { return d.laba < 0; }).length;
+    if (rugi && daily.length > 1) out.push({ text: rugi + ' dari ' + daily.length + ' hari pengeluarannya lebih besar dari omzet.', tone: 'warn' });
+    return out;
   }
   SCREENS.reportFinance = {
     role: 'MANAGER', title: 'Laporan Keuangan',
@@ -1561,15 +1820,30 @@
       var d = useData(key, function () { return api('reportFinance', { period: S.rep.period }); });
       var body = guard(d, key);
       if (!body) {
-        var v = d.value, s = v.summary;
-        body = '<div class="kpi-grid">' + kpiCard('green', 'trend', 'Omzet', rp(s.omzet), deltaHtml(s.omzet_change_pct, '')) +
-          kpiCard('red', 'note', 'Pengeluaran', rp(s.pengeluaran), deltaHtml(s.pengeluaran_change_pct, '')) +
+        var v = d.value, s = v.summary, cmp = CMP_TEXT[v.range.period] || '', g = granOf(v.range.days), m = financeModel(v, g);
+        var per = g === 'week' ? 'per Minggu' : 'per Hari';
+        function det(i) {
+          return '<div class="semibold">' + esc(bucketName(m.bs[i])) + '</div>' + dline('Omzet', rp(m.omzet[i])) + dline('Pengeluaran', rp(m.exp[i])) +
+            dline(m.laba[i] < 0 ? 'Rugi' : 'Laba bersih', '<span class="' + (m.laba[i] < 0 ? 'down' : '') + '">' + rp(m.laba[i]) + '</span>');
+        }
+        body = repHead(v.range, 'finance') + insightsHtml(financeInsights(v)) +
+          '<div class="kpi-grid">' + kpiCard('green', 'trend', 'Omzet', rp(s.omzet), deltaHtml(s.omzet_change_pct, cmp)) +
+          kpiCard('red', 'note', 'Pengeluaran', rp(s.pengeluaran), deltaHtml(s.pengeluaran_change_pct, cmp, true)) +
           kpiCard('purple', 'wallet', 'Laba Bersih Sederhana', '<span class="' + (s.laba_bersih < 0 ? 'down' : '') + '">' + rp(s.laba_bersih) + '</span>', '<div class="delta faint">Sebelumnya ' + rpShort(s.laba_bersih_prev) + '</div>') +
           kpiCard('', '', 'HPP', '<span class="faint" aria-label="Belum tersedia">—</span>', '<div class="delta faint">Belum tersedia</div><button class="btn-text" data-act="explain" data-k="hpp">Kenapa?</button>') + '</div>' +
+          chartCard('c-fin', 'Omzet vs Pengeluaran ' + per, 'Bandingkan tinggi batang biru (masuk) dan oranye (keluar)', colChart({
+            id: 'c-fin', aria: 'Grafik omzet dan pengeluaran ' + per.toLowerCase(), labels: m.bs,
+            series: [{ name: 'Omzet', cls: 'c-s1', values: m.omzet }, { name: 'Pengeluaran', cls: 'c-s2', values: m.exp }], prev: null,
+            titleOf: function (i) { return bucketName(m.bs[i]) + ': omzet ' + rp(m.omzet[i]) + ', pengeluaran ' + rp(m.exp[i]); }, detail: det
+          }), granToggle(v.range.days)) +
+          chartCard('c-laba', 'Untung / Rugi ' + per, 'Di atas garis 0 = untung, di bawah = rugi', colChart({
+            id: 'c-laba', aria: 'Grafik laba bersih ' + per.toLowerCase(), labels: m.bs,
+            series: [{ name: 'Laba bersih', signed: true, values: m.laba }], prev: null,
+            titleOf: function (i) { return bucketName(m.bs[i]) + ': ' + rp(m.laba[i]); }, detail: det
+          })) +
           '<section class="card pad stack"><div class="section-title">Komposisi Pengeluaran</div>' + (v.expense_by_category.length ?
-            '<div class="row wrap" style="gap:16px;align-items:center">' + donut(v.expense_by_category) + '<div class="legend grow" style="min-width:170px">' + v.expense_by_category.map(function (c, i) {
-              return '<div class="li"><span class="sw" style="background:' + DONUT[i % DONUT.length] + '"></span><span>' + esc(c.category) + '</span><span class="num faint">' + rpShort(c.amount) + '</span><b class="num">' + String(c.pct).replace('.', ',') + '%</b></div>';
-            }).join('') + '</div></div>' : '<p class="muted small">Belum ada pengeluaran pada periode ini.</p>') + '</section>' +
+            rankBars(v.expense_by_category.map(function (c) { return { label: c.category, value: c.amount, valueText: rpShort(c.amount), note: ' <span class="xs faint">· ' + pctTxt(c.pct) + '%</span>' }; }), 'c-s2-bg')
+            : '<p class="muted small">Belum ada pengeluaran pada periode ini.</p>') + '</section>' +
           '<section class="card pad stack"><div class="section-title">Omzet per Channel</div>' + (s.transaksi ? channelBars(v.by_channel) : '<p class="muted small">Belum ada transaksi.</p>') + '</section>' +
           '<div class="info-box">' + icon('info') + '<span>' + esc(v.definitions.laba_bersih) + '</span></div>';
       }
@@ -1600,7 +1874,7 @@
         row('setBackup', 'database', 'green', 'Backup Data', S.settings.last_backup_at ? 'Terakhir ' + fmtDate(S.settings.last_backup_at.substring(0, 10)) : 'Belum pernah', admin, 'Admin') +
         menuRow('setPassword', 'lock', 'red', 'Ganti Password', 'Akun Anda') +
         menuRow('setDevice', 'phone', 'blue', 'Info Tampilan', 'Ukuran layar & viewport perangkat ini') + '</div></div>' +
-        '<p class="xs faint" style="text-align:center">Dash Food POS v1.5' + (window.DF_BUILD ? ' · web ' + esc(window.DF_BUILD) : '') + '</p></main>', { nav: true });
+        '<p class="xs faint" style="text-align:center">Dash Food POS v1.7' + (window.DF_BUILD ? ' · web ' + esc(window.DF_BUILD) : '') + '</p></main>', { nav: true });
     }
   };
   function menuRow(to, ic, color, title, sub) {
@@ -1672,7 +1946,8 @@
           hint: 'Default: mengikuti logo halaman login, lalu logo bawaan. Dipakai di struk layar, gambar struk, cetak, dan PDF untuk transaksi berikutnya; struk lama tetap memakai logo saat transaksi.' }) +
         field('Pesan penutup struk', '<textarea class="textarea" name="receipt_footer" maxlength="300">' + esc(r.receipt_footer) + '</textarea>') +
         '<div class="card pad row"><span class="grow semibold">Tampilkan logo di struk</span><span class="switch"><input type="checkbox" name="receipt_show_logo"' + (r.receipt_show_logo ? ' checked' : '') + ' aria-label="Tampilkan logo"><span class="track"></span></span></div>' +
-        '<div class="info-box">' + icon('info') + '<span>Cetak memakai dialog print perangkat (printer Bluetooth/thermal yang terpasang di Android, atau Simpan sebagai PDF). Lebar struk dioptimalkan untuk kertas 58–80 mm.</span></div>' +
+        '<div class="info-box">' + icon('info') + '<span>Printer Bluetooth diatur per HP di <b>Lainnya → Printer Struk</b> (RawBT, Bluetooth langsung, atau dialog cetak).</span></div>' +
+        '<button type="button" class="btn btn-outline btn-block" data-act="printerSetup">' + icon('printer') + ' Atur printer HP ini</button>' +
         '<div class="err" id="form-err" role="alert"></div><button class="btn btn-primary btn-block btn-lg" type="submit">Simpan</button>' +
         '<button type="button" class="btn btn-outline btn-block" data-act="testPrint">' + icon('printer') + ' Cetak Uji</button></form></main>');
     }
@@ -1746,17 +2021,8 @@
   };
 
   /* ---------- 21. Menu Lainnya ---------- */
-  SCREENS.more = {
-    render: function () {
-      var mgr = hasRole('MANAGER');
-      function row(to, ic, color, title, sub, need) {
-        if (!need || hasRole(need)) return menuRow(to, ic, color, title, sub);
-        return '<button class="list-item menu-row" disabled aria-disabled="true" title="Khusus Manager/Admin"><div class="tile ' + color + '">' + icon(ic) + '</div><div class="grow"><div class="title">' + esc(title) + '</div><div class="meta">Khusus Manager/Admin</div></div>' + icon('lock', 'icon-sm chev') + '</button>';
-      }
-      return screenWrap('more', hdrLight('Lainnya', { noBack: true }) + '<main class="content">' +
-        '<div class="card profile"><div class="avatar">' + esc(initials(S.user.display_name)) + '</div><div class="grow"><div class="semibold">' + esc(S.user.display_name) + '</div><div class="small muted">@' + esc(S.user.username) + ' · ' + esc(S.labels.ROLES[S.user.role]) + '</div></div>' +
-        '<button class="btn btn-outline btn-sm" data-act="logout">' + icon('logout', 'icon-sm') + ' Keluar</button></div>' +
-        '<section class="card pad stack sm"><div class="label">Tampilan</div>' +
+  function themeSection() {
+    return '<section class="card pad stack sm"><div class="label">Tampilan</div>' +
         '<div class="seg" role="radiogroup" aria-label="Tema tampilan">' + [['auto', 'Otomatis'], ['light', 'Terang'], ['dark', 'Gelap']].map(function (t) {
           var on = themePref() === t[0];
           return '<button type="button" role="radio" aria-checked="' + on + '" class="' + (on ? 'active' : '') + '" data-act="setTheme" data-v="' + t[0] + '">' + t[1] + '</button>';
@@ -1764,7 +2030,38 @@
         '<div class="label" style="margin-top:8px">Warna aksen</div><div class="swatches" role="radiogroup" aria-label="Warna aksen">' + ACCENTS.map(function (a) {
           var on = accentPref() === a[0];
           return '<button type="button" class="swatch" role="radio" aria-checked="' + on + '" data-act="setAccent" data-v="' + a[0] + '"><span class="sw-dot" style="background:' + a[2] + '">' + icon('check') + '</span>' + a[1] + '</button>';
-        }).join('') + '</div></section>' +
+        }).join('') + '</div></section>';
+  }
+  function printerSummary() { var c = prnCfg(); return (c.set ? PRN_METHODS[c.method].title : 'Belum diatur') + ' · ' + c.paper + ' mm' + (c.auto ? ' · otomatis' : ''); }
+  /** Alamat aplikasi web (PWA). Di link Apps Script dipakai alamat resmi. */
+  function appUrl(sub) {
+    var base = IS_GAS ? (window.DF_PWA_URL || 'https://dashfood-pos.github.io/') : location.href.replace(/[?#].*$/, '').replace(/kasir\/(index\.html)?$/, '').replace(/index\.html$/, '');
+    return base + sub;
+  }
+  SCREENS.more = {
+    render: function () {
+      var mgr = hasRole('MANAGER');
+      function row(to, ic, color, title, sub, need) {
+        if (!need || hasRole(need)) return menuRow(to, ic, color, title, sub);
+        return '<button class="list-item menu-row" disabled aria-disabled="true" title="Khusus Manager/Admin"><div class="tile ' + color + '">' + icon(ic) + '</div><div class="grow"><div class="title">' + esc(title) + '</div><div class="meta">Khusus Manager/Admin</div></div>' + icon('lock', 'icon-sm chev') + '</button>';
+      }
+      var prof = '<div class="card profile"><div class="avatar">' + esc(initials(S.user.display_name)) + '</div><div class="grow"><div class="semibold">' + esc(S.user.display_name) + '</div><div class="small muted">@' + esc(S.user.username) + ' · ' + esc(S.labels.ROLES[S.user.role]) + '</div></div>' +
+        '<button class="btn btn-outline btn-sm" data-act="logout">' + icon('logout', 'icon-sm') + ' Keluar</button></div>';
+      if (kasirMode()) {
+        return screenWrap('more', hdrLight('Lainnya', { noBack: true }) + '<main class="content">' + prof +
+          '<div class="card" style="overflow:hidden"><div class="list">' +
+          menuRow('printer', 'printer', 'brown', 'Printer Struk', printerSummary()) +
+          menuRow('orders', 'receipt', 'blue', 'Riwayat Transaksi', 'Lihat & cetak ulang struk') +
+          menuRow('stock', 'box', 'green', 'Stok', 'Cek stok produk & topping') +
+          menuRow('setPassword', 'lock', 'orange', 'Ganti Password', '') +
+          (hasRole('MANAGER') ? '<a class="list-item menu-row" href="' + esc(appUrl('')) + '"><div class="tile blue">' + icon('grid') + '</div><div class="grow"><div class="title">Buka menu lengkap</div><div class="meta">Laporan, produk, pengaturan</div></div>' + icon('chev-right', 'icon-sm chev') + '</a>' : '') +
+          '</div></div>' + themeSection() +
+          '<p class="xs faint" style="text-align:center">Mode Kasir · Dash Food POS v1.7</p></main>', { nav: true });
+      }
+      return screenWrap('more', hdrLight('Lainnya', { noBack: true }) + '<main class="content">' +
+        '<div class="card profile"><div class="avatar">' + esc(initials(S.user.display_name)) + '</div><div class="grow"><div class="semibold">' + esc(S.user.display_name) + '</div><div class="small muted">@' + esc(S.user.username) + ' · ' + esc(S.labels.ROLES[S.user.role]) + '</div></div>' +
+        '<button class="btn btn-outline btn-sm" data-act="logout">' + icon('logout', 'icon-sm') + ' Keluar</button></div>' +
+        themeSection() +
         '<div class="card" style="overflow:hidden"><div class="list">' +
         row('products', 'box', 'brown', 'Kelola Produk', 'Tambah, edit, nonaktifkan', 'MANAGER') +
         row('variants', 'layers', 'orange', 'Kelola Topping', 'Topping & harga tambahan', 'MANAGER') +
@@ -1774,6 +2071,8 @@
         row('expenses', 'note', 'red', 'Pengeluaran', 'Bahan, packaging, operasional', 'MANAGER') +
         row('reports', 'chart', 'blue', 'Laporan', 'Penjualan, produk, keuangan', 'MANAGER') +
         menuRow('settings', 'settings', 'brown', 'Pengaturan', mgr ? 'Toko, channel, akun' : 'Ganti password') +
+        menuRow('printer', 'printer', 'brown', 'Printer Struk', printerSummary()) +
+        (hasRole('ADMIN') ? '<button class="list-item menu-row" data-act="kasirAppInfo"><div class="tile green">' + icon('phone') + '</div><div class="grow"><div class="title">Aplikasi Kasir (HP booth)</div><div class="meta">Link khusus kasir & akun kasir</div></div>' + icon('chev-right', 'icon-sm chev') + '</button>' : '') +
         '</div></div></main>', { nav: true });
     }
   };
@@ -2022,15 +2321,265 @@
     histPush();
     render(); window.scrollTo(0, 0);
     toast('Transaksi ' + d.order_number + ' berhasil');
+    if (prnCfg().auto && d.status === 'COMPLETED') printOrder(d).catch(function () { /* tombol Cetak tetap ada */ });
   }
+
+  /* ======================================================= PRINTER STRUK (per perangkat)
+     Tiga cara cetak, disimpan di HP ini saja (tiap HP kasir bisa beda printer):
+     - rawbt  : kirim perintah ESC/POS ke aplikasi RawBT → printer thermal Bluetooth (klasik & BLE). Paling kompatibel.
+     - ble    : Web Bluetooth langsung ke printer BLE, tanpa aplikasi tambahan (hanya PWA/APK, bukan link Apps Script).
+     - system : dialog cetak HP (pilih printer / Simpan sebagai PDF). */
+  var IS_ANDROID = /Android/i.test(navigator.userAgent || '');
+  var RAWBT_PLAY = 'https://play.google.com/store/apps/details?id=ru.a402d.rawbtprinter';
+  function prnCfg() {
+    var c = store('printer') || {};
+    return { method: ['rawbt', 'ble', 'system'].indexOf(c.method) !== -1 ? c.method : (IS_ANDROID ? 'rawbt' : 'system'),
+      paper: c.paper === 80 ? 80 : 58, auto: !!c.auto, bleName: c.bleName || '', bleId: c.bleId || '', set: !!c.method };
+  }
+  function prnSave(patchObj) { var c = prnCfg(); Object.keys(patchObj).forEach(function (k) { c[k] = patchObj[k]; }); delete c.set; store('printer', c); }
+  var PRN_METHODS = {
+    rawbt: { title: 'Lewat aplikasi RawBT', tag: 'Disarankan', sub: 'Untuk semua printer thermal Bluetooth 58/80 mm. Sekali atur, cetak 1 ketukan tanpa dialog.' },
+    ble: { title: 'Bluetooth langsung', tag: '', sub: 'Tanpa aplikasi tambahan. Hanya untuk printer yang mendukung BLE, di aplikasi Dash Food (APK/PWA).' },
+    system: { title: 'Dialog cetak HP', tag: '', sub: 'Pilih printer setiap kali mencetak. Bisa juga Simpan sebagai PDF.' }
+  };
+
+  /* ---- Struk ESC/POS (teks, lebar 32 karakter untuk 58 mm, 48 untuk 80 mm) ---- */
+  function asciiText(s) {
+    return String(s === null || s === undefined ? '' : s).normalize('NFKD').replace(/[̀-ͯ]/g, '')
+      .replace(/[“”]/g, '"').replace(/[‘’]/g, "'").replace(/[–—]/g, '-').replace(/·/g, '-').replace(/…/g, '...').replace(/[^\x20-\x7E\n]/g, '');
+  }
+  function wrapText(s, w) {
+    var out = [];
+    asciiText(s).split('\n').forEach(function (para) {
+      var cur = '';
+      para.split(' ').forEach(function (word) {
+        while (word.length > w) { if (cur) { out.push(cur); cur = ''; } out.push(word.slice(0, w)); word = word.slice(w); }
+        if (!cur) cur = word; else if ((cur + ' ' + word).length <= w) cur += ' ' + word; else { out.push(cur); cur = word; }
+      });
+      out.push(cur);
+    });
+    return out;
+  }
+  function escposReceipt(o, cfg) {
+    var W = cfg.paper === 80 ? 48 : 32, st = S.settings.store, p = o.payment, b = [];
+    function raw(a) { for (var i = 0; i < a.length; i++) b.push(a[i]); }
+    function txt(s) { var t = asciiText(s); for (var i = 0; i < t.length; i++) b.push(t.charCodeAt(i)); }
+    function line(s) { txt(s); b.push(10); }
+    function align(n) { raw([0x1B, 0x61, n]); }
+    function bold(on) { raw([0x1B, 0x45, on ? 1 : 0]); }
+    function size(n) { raw([0x1D, 0x21, n]); }
+    function lr(l, r) {
+      l = asciiText(l); r = asciiText(r);
+      if (l.length + r.length + 1 > W) { wrapText(l, W).forEach(line); l = ''; }
+      line(l + new Array(Math.max(W - l.length - r.length, 1) + 1).join(' ') + r);
+    }
+    function div() { line(new Array(W + 1).join('-')); }
+    raw([0x1B, 0x40]);                 // reset printer
+    raw([0x1B, 0x74, 0x00]);           // code page standar (ASCII)
+    align(1); bold(true); size(0x11);  // nama toko: tebal, 2x lebar & tinggi
+    wrapText(st.store_name || 'Dash Food', Math.floor(W / 2)).forEach(line);
+    size(0); bold(false);
+    if (st.store_tagline) wrapText(st.store_tagline, W).forEach(line);
+    if (st.store_address) wrapText(st.store_address, W).forEach(line);
+    if (st.store_phone) line('Telp. ' + st.store_phone);
+    align(0); div();
+    lr('No', o.order_number);
+    lr('Tanggal', fmtDate(o.order_date) + ' ' + (o.order_time || ''));
+    lr('Channel', o.channel_label || '');
+    if (o.external_order_id) lr('No. Platform', o.external_order_id);
+    if (o.cashier_name) lr('Kasir', o.cashier_name);
+    div();
+    o.items.forEach(function (i) {
+      bold(true); wrapText(i.product_name, W).forEach(line); bold(false);
+      if (i.variant_label) wrapText('  + ' + i.variant_label, W).forEach(line);
+      if (i.notes) wrapText('  "' + i.notes + '"', W).forEach(line);
+      lr('  ' + i.quantity + ' x ' + num(i.unit_price + (i.topping_total || 0)), num(i.line_total));
+    });
+    div();
+    lr('Subtotal', num(o.subtotal));
+    if (o.discount) lr('Diskon', '-' + num(o.discount));
+    bold(true); size(0x01); lr('TOTAL', rp(o.total)); size(0); bold(false);
+    if (p) {
+      lr('Bayar', p.payment_method_label || '');
+      if (p.received_amount !== null && p.received_amount !== undefined && p.received_amount !== '') {
+        lr('Diterima', num(p.received_amount)); lr('Kembali', num(p.change_amount || 0));
+      }
+    }
+    if (o.notes) { div(); wrapText('Catatan: ' + o.notes, W).forEach(line); }
+    if (o.status === 'CANCELLED') { div(); align(1); bold(true); line('*** DIBATALKAN ***'); bold(false); align(0); }
+    div(); align(1);
+    wrapText((S.settings.receipt && S.settings.receipt.receipt_footer) || 'Terima kasih', W).forEach(line);
+    align(0);
+    raw([0x1B, 0x64, 0x04]);           // maju 4 baris agar mudah disobek
+    raw([0x1D, 0x56, 0x42, 0x00]);     // potong kertas (diabaikan printer tanpa pemotong)
+    return new Uint8Array(b);
+  }
+  function bytesToB64(bytes) { var s = ''; for (var i = 0; i < bytes.length; i += 8192) s += String.fromCharCode.apply(null, bytes.subarray(i, i + 8192)); return btoa(s); }
+
+  /* ---- Pengirim ---- */
+  var PRINT_IO = {
+    // Dipisah agar bisa diuji otomatis (test mengganti fungsi ini).
+    openUrl: function (u) {
+      if (IS_GAS) { try { window.open(u, '_top'); return; } catch (e) { /* lanjut */ } }
+      window.location.href = u;
+    }
+  };
+  function sendRawBT(bytes) {
+    PRINT_IO.openUrl('intent:base64,' + bytesToB64(bytes) + '#Intent;scheme=rawbt;package=ru.a402d.rawbtprinter;S.browser_fallback_url=' + encodeURIComponent(RAWBT_PLAY) + ';end;');
+  }
+  // Layanan GATT printer thermal BLE yang umum (EPPOS, Panda, iware, MTP, Xprinter, dll.).
+  var BLE_SERVICES = ['000018f0-0000-1000-8000-00805f9b34fb', 'e7810a71-73ae-499d-8c15-faa9aef0c3f2', '49535343-fe7d-4ae5-8fa9-9fafd205e455',
+    '0000ff00-0000-1000-8000-00805f9b34fb', '0000ffe0-0000-1000-8000-00805f9b34fb', '0000fee7-0000-1000-8000-00805f9b34fb'];
+  var BLE = { dev: null, ch: null };
+  function bleSupported() { return !!(navigator.bluetooth && navigator.bluetooth.requestDevice) && !IS_GAS; }
+  function bleWritable(server) {
+    return server.getPrimaryServices().then(function (svcs) {
+      return svcs.reduce(function (pr, svc) {
+        return pr.then(function (found) {
+          if (found) return found;
+          return svc.getCharacteristics().then(function (chs) {
+            return chs.filter(function (c) { return c.properties.write || c.properties.writeWithoutResponse; })[0] || null;
+          }, function () { return null; });
+        });
+      }, Promise.resolve(null));
+    }).then(function (ch) { if (!ch) throw { message: 'Printer tersambung, tetapi tidak menerima data cetak. Pakai metode RawBT.' }; return ch; });
+  }
+  /** pick: true = boleh menampilkan daftar perangkat (harus dari ketukan pengguna). */
+  function bleConnect(pick) {
+    if (!bleSupported()) return Promise.reject({ message: IS_GAS ? 'Bluetooth langsung tidak bisa dari link Apps Script. Buka aplikasi Dash Food (APK/PWA) atau pakai RawBT.' : 'HP/browser ini tidak mendukung Bluetooth langsung. Pakai metode RawBT.' });
+    if (BLE.ch && BLE.dev && BLE.dev.gatt.connected) return Promise.resolve(BLE.ch);
+    var c = prnCfg();
+    var known = BLE.dev ? Promise.resolve(BLE.dev) : (navigator.bluetooth.getDevices ? navigator.bluetooth.getDevices().catch(function () { return []; }) : Promise.resolve([])).then(function (list) {
+      return (list || []).filter(function (d) { return (c.bleId && d.id === c.bleId) || (c.bleName && d.name === c.bleName); })[0] || null;
+    });
+    return known.then(function (dev) {
+      if (dev) return dev;
+      if (!pick) throw { code: 'BLE_PICK', message: 'Printer belum tersambung. Ketuk Cetak lagi untuk memilih printer.' };
+      return navigator.bluetooth.requestDevice({ acceptAllDevices: true, optionalServices: BLE_SERVICES });
+    }).then(function (dev) {
+      BLE.dev = dev;
+      prnSave({ bleName: dev.name || 'Printer', bleId: dev.id || '' });
+      return dev.gatt.connect();
+    }).then(bleWritable).then(function (ch) { BLE.ch = ch; return ch; });
+  }
+  function bleSend(bytes) {
+    return bleConnect(true).then(function (ch) {
+      var CH = 180, chain = Promise.resolve();
+      for (var i = 0; i < bytes.length; i += CH) {
+        (function (part) {
+          chain = chain.then(function () {
+            return ch.properties.writeWithoutResponse && ch.writeValueWithoutResponse ? ch.writeValueWithoutResponse(part) : ch.writeValue(part);
+          }).then(function () { return new Promise(function (r) { setTimeout(r, 25); }); });
+        })(bytes.slice(i, i + CH));
+      }
+      return chain;
+    }).catch(function (e) { BLE.ch = null; throw e; });
+  }
+  function systemPrint(o) {
+    document.getElementById('print-root').innerHTML = receiptHtml(o);
+    setTimeout(function () { window.print(); }, 50);
+  }
+  /** Cetak satu struk dengan cara yang dipilih di HP ini. Mengembalikan Promise. */
+  function printOrder(o) {
+    var c = prnCfg();
+    if (c.method === 'system') { systemPrint(o); return Promise.resolve('system'); }
+    var bytes = escposReceipt(o, c);
+    if (c.method === 'rawbt') {
+      if (!IS_ANDROID) { toast('RawBT hanya ada di Android. Memakai dialog cetak.', 'info'); systemPrint(o); return Promise.resolve('system'); }
+      sendRawBT(bytes);
+      return Promise.resolve('rawbt');
+    }
+    return bleSend(bytes).then(function () { toast('Struk terkirim ke ' + (prnCfg().bleName || 'printer')); return 'ble'; }, function (e) {
+      toast('Gagal mencetak: ' + errMsg(e) + ' Cek di Lainnya → Printer Struk.', 'error');
+      throw e;
+    });
+  }
+  function sampleOrder() {
+    return { order_number: 'CETAK-UJI', order_date: S.today, order_time: '00:00', channel_label: 'Offline', cashier_name: S.user.display_name, external_order_id: '',
+      items: [{ product_name: 'Banana Bites', variant_label: 'Oreo', notes: '', quantity: 2, unit_price: 10000, topping_total: 2000, line_total: 24000 },
+        { product_name: 'Es Teler', variant_label: '', notes: '', quantity: 1, unit_price: 15000, topping_total: 0, line_total: 15000 }],
+      subtotal: 39000, discount: 0, total: 39000, notes: 'STRUK UJI - BUKAN TRANSAKSI', status: 'COMPLETED',
+      payment: { payment_method_label: 'Cash', received_amount: 50000, change_amount: 11000 } };
+  }
+
+  /* ---- Layar: Printer Struk ---- */
+  SCREENS.printer = {
+    title: 'Printer Struk',
+    render: function () {
+      var c = prnCfg();
+      var methods = Object.keys(PRN_METHODS).map(function (k) {
+        var m = PRN_METHODS[k], on = c.method === k;
+        return '<button class="list-item menu-row prn-opt' + (on ? ' on' : '') + '" role="radio" aria-checked="' + on + '" data-act="prnMethod" data-v="' + k + '">' +
+          '<span class="radio-dot' + (on ? ' on' : '') + '" aria-hidden="true"></span><div class="grow"><div class="title">' + esc(m.title) +
+          (m.tag ? ' <span class="badge green">' + esc(m.tag) + '</span>' : '') + '</div><div class="meta">' + esc(m.sub) + '</div></div></button>';
+      }).join('');
+      var guide = '';
+      if (c.method === 'rawbt') {
+        guide = '<section class="card pad stack"><div class="section-title">Cara pasang (sekali saja per HP)</div><ol class="steps">' +
+          '<li>Nyalakan printer, lalu sambungkan di <b>Pengaturan HP → Bluetooth</b>. PIN biasanya <b>0000</b> atau <b>1234</b>.</li>' +
+          '<li>Pasang aplikasi <b>RawBT</b> dari Play Store, buka, pilih printer Anda, lalu tekan tes cetak di RawBT.</li>' +
+          '<li>Kembali ke sini, aktifkan <b>Cetak otomatis</b>, lalu tekan <b>Cetak Uji</b>. Pertama kali, centang "Selalu" bila HP bertanya aplikasi pembuka.</li></ol>' +
+          '<a class="btn btn-outline btn-block" href="' + RAWBT_PLAY + '" target="_blank" rel="noopener">' + icon('share') + ' Buka RawBT di Play Store</a></section>';
+        if (!IS_ANDROID) guide += '<div class="info-box warn">' + icon('alert') + '<span>RawBT hanya untuk Android. Di perangkat ini struk akan memakai dialog cetak.</span></div>';
+      } else if (c.method === 'ble') {
+        var connected = BLE.dev && BLE.dev.gatt && BLE.dev.gatt.connected;
+        guide = '<section class="card pad stack"><div class="section-title">Printer Bluetooth</div>' +
+          (bleSupported() ? '<div class="row" style="gap:12px"><span class="dot ' + (connected ? 'green' : 'grey') + '"></span><span class="grow">' +
+            (c.bleName ? esc(c.bleName) + (connected ? ' · tersambung' : ' · tersimpan') : 'Belum ada printer') + '</span></div>' +
+            '<button class="btn btn-primary btn-block" data-act="prnConnect">' + icon('printer') + (c.bleName ? ' Sambungkan ulang' : ' Cari & sambungkan printer') + '</button>' +
+            (c.bleName ? '<button class="btn btn-text" data-act="prnForget">Lupakan printer ini</button>' : '') +
+            '<p class="xs faint">Nyalakan printer & Bluetooth HP. Bila printer tidak muncul di daftar, printer itu tidak mendukung BLE: pakai RawBT.</p>'
+            : '<div class="info-box warn">' + icon('alert') + '<span>' + (IS_GAS ? 'Bluetooth langsung tidak bisa dipakai dari link Apps Script. Buka aplikasi Dash Food (APK/PWA) atau pilih RawBT.' : 'HP/browser ini tidak mendukung Bluetooth langsung. Pilih RawBT.') + '</span></div>') + '</section>';
+      } else {
+        guide = '<div class="info-box">' + icon('info') + '<span>Setiap cetak akan membuka dialog cetak HP. Untuk printer thermal Bluetooth, pilih RawBT agar lebih cepat.</span></div>';
+      }
+      return screenWrap('printer', hdrLight('Printer Struk') + '<main class="content">' +
+        '<div class="info-box">' + icon('info') + '<span>Pengaturan ini tersimpan di <b>HP ini saja</b>. Atur di setiap HP kasir.</span></div>' +
+        '<section class="card" style="overflow:hidden"><div class="section-title" style="padding:14px 16px 4px">Cara mencetak</div><div class="list" role="radiogroup" aria-label="Cara mencetak">' + methods + '</div></section>' +
+        guide +
+        '<section class="card pad stack"><div class="label">Lebar kertas</div><div class="seg" role="radiogroup" aria-label="Lebar kertas">' + [[58, '58 mm (kecil)'], [80, '80 mm (besar)']].map(function (x) {
+          var on = c.paper === x[0];
+          return '<button type="button" role="radio" aria-checked="' + on + '" class="' + (on ? 'active' : '') + '" data-act="prnPaper" data-v="' + x[0] + '">' + x[1] + '</button>';
+        }).join('') + '</div>' +
+        '<div class="row" style="gap:12px;margin-top:8px"><div class="grow"><div class="semibold">Cetak otomatis setelah bayar</div><div class="xs muted">Struk langsung keluar begitu transaksi berhasil.</div></div>' +
+        '<span class="switch"><input type="checkbox" data-change="prnAuto"' + (c.auto ? ' checked' : '') + ' aria-label="Cetak otomatis setelah bayar"><span class="track"></span></span></div></section>' +
+        '<button class="btn btn-primary btn-block btn-lg" data-act="prnTest">' + icon('printer') + ' Cetak Uji</button></main>');
+    }
+  };
+  ACTIONS.printerSetup = function () { go('printer'); };
+  ACTIONS.prnMethod = function (el) { prnSave({ method: el.dataset.v }); render(); };
+  ACTIONS.prnPaper = function (el) { prnSave({ paper: parseInt(el.dataset.v, 10) }); render(); };
+  CHANGES.prnAuto = function (el) { prnSave({ auto: el.checked, method: prnCfg().method }); toast(el.checked ? 'Cetak otomatis aktif' : 'Cetak otomatis dimatikan', 'info'); };
+  ACTIONS.prnConnect = function (el) {
+    el.disabled = true;
+    BLE.dev = null; BLE.ch = null;
+    bleConnect(true).then(function () { prnSave({ method: 'ble' }); toast('Tersambung ke ' + prnCfg().bleName); render(); },
+      function (e) { if (e && e.name === 'NotFoundError') toast('Tidak ada printer dipilih.', 'info'); else toast(errMsg(e), 'error'); render(); });
+  };
+  ACTIONS.prnForget = function () {
+    try { if (BLE.dev && BLE.dev.gatt.connected) BLE.dev.gatt.disconnect(); if (BLE.dev && BLE.dev.forget) BLE.dev.forget(); } catch (e) { /* abaikan */ }
+    BLE.dev = null; BLE.ch = null; prnSave({ bleName: '', bleId: '' }); render();
+  };
+  ACTIONS.prnTest = function () { if (!prnCfg().set) prnSave({ method: prnCfg().method }); printOrder(sampleOrder()).catch(function () { /* pesan sudah ditampilkan */ }); };
 
   /* Struk */
   function orderFromCache(id) { var d = S.data['order|' + id]; return d && d.status === 'ok' ? d.value : null; }
   ACTIONS.printReceipt = function (el) {
     var o = orderFromCache(el.dataset.id);
     if (!o) return;
-    document.getElementById('print-root').innerHTML = receiptHtml(o);
-    setTimeout(function () { window.print(); }, 50);
+    printOrder(o).catch(function () { /* pesan sudah ditampilkan */ });
+  };
+  ACTIONS.kasirAppInfo = function () {
+    var url = appUrl('kasir/');
+    infoSheet('Aplikasi Kasir untuk HP booth', '<p>HP kasir cukup login dengan akun ber-role <b>Kasir</b>: aplikasi langsung membuka layar Kasir, tanpa laporan, laba, dan pengaturan toko.</p>' +
+      '<ol class="steps"><li>Buat akun di <b>Pengaturan → Akun Pengguna → Tambah</b>, pilih role <b>Kasir</b>.</li>' +
+      '<li>Di HP booth, buka link di bawah dengan Chrome → menu ⋮ → <b>Tambahkan ke layar utama</b>. Muncul ikon <b>DF Kasir</b>. (APK Dash Food juga bisa: login dengan akun kasir.)</li>' +
+      '<li>Login dengan akun kasir, lalu atur <b>Lainnya → Printer Struk</b> di HP itu.</li></ol>' +
+      '<div class="card pad row" style="gap:8px;background:var(--surface-2)"><span class="grow small" style="word-break:break-all">' + esc(url) + '</span>' +
+      '<button class="btn btn-outline btn-sm" data-act="copyText" data-v="' + esc(url) + '">Salin</button></div>');
+  };
+  ACTIONS.copyText = function (el) {
+    (navigator.clipboard ? navigator.clipboard.writeText(el.dataset.v) : Promise.reject()).then(function () { toast('Link disalin'); }, function () { toast('Salin manual: ' + el.dataset.v, 'info'); });
   };
   ACTIONS.downloadPdf = function (el) {
     var id = el.dataset.id, label = el.innerHTML;
@@ -2440,13 +2989,493 @@
   };
 
   /* Laporan */
-  CHANGES.repPeriod = function (el) { S.rep.period = el.value; S.chartSel = null; render(); };
-  CHANGES.repChannel = function (el) { S.rep.channel = el.value; S.chartSel = null; render(); };
-  ACTIONS.chartPoint = function (el) {
-    S.chartSel = parseInt(el.dataset.i, 10);
-    var d = S.data['repSales|' + S.rep.period + '|' + S.rep.channel];
-    if (d && d.status === 'ok') patch('chart', lineChart(d.value.daily));
+  CHANGES.repPeriod = function (el) { S.rep.period = el.value; S.rep.gran = null; S.chartSel = {}; render(); };
+  ACTIONS.dashToReport = function () {
+    // Periode laporan mengikuti Beranda (semua periode Beranda juga ada di laporan).
+    if (REP_CHIPS.some(function (c) { return c[0] === S.dash.period; })) { S.rep.period = S.dash.period; S.rep.gran = null; S.chartSel = {}; }
+    go('reportProducts');
   };
+  ACTIONS.repPeriod = function (el) { if (S.rep.period === el.dataset.p) return; S.rep.period = el.dataset.p; S.rep.gran = null; S.chartSel = {}; render(); };
+  ACTIONS.repGran = function (el) { S.rep.gran = el.dataset.g; S.chartSel = {}; render(); };
+  CHANGES.repChannel = function (el) { S.rep.channel = el.value; S.chartSel = {}; render(); };
+  ACTIONS.chartPoint = function (el) {
+    var id = el.dataset.c, spec = CHART_SPECS[id];
+    if (!spec) return;
+    S.chartSel[id] = parseInt(el.dataset.i, 10);
+    patch(id, colChart(spec));
+  };
+
+  /* ======================================================= UNDUH LAPORAN (Excel & PDF)
+     Dibuat langsung di perangkat dari data laporan yang sedang tampil, tanpa library luar:
+     jalan sama di Apps Script, PWA, dan APK. Satu model laporan → dua format. */
+
+  /** Model laporan netral-format. Kolom t: text | rp | num | pct | date. */
+  function reportDoc(kind) {
+    var key = kind === 'sales' ? 'repSales|' + S.rep.period + '|' + S.rep.channel : kind === 'products' ? 'repProd|' + S.rep.period + '|' + S.rep.channel : 'repFin|' + S.rep.period;
+    var d = S.data[key];
+    if (!d || d.status !== 'ok') return null;
+    var v = d.value, r = v.range, pn = prevName(r), g = granOf(r.days);
+    var doc = {
+      kind: kind, range: r,
+      title: { sales: 'Laporan Penjualan', products: 'Laporan Produk', finance: 'Laporan Keuangan' }[kind],
+      store: (S.settings && S.settings.store && S.settings.store.store_name) || 'Dash Food',
+      period: rangeText(r), compare: prevText(r),
+      channel: kind === 'finance' ? '' : (v.channel ? chLabel(v.channel) : 'Semua Channel'),
+      kpis: [], insights: [], sections: []
+    };
+    var bucketCol = { h: g === 'week' ? 'Minggu' : 'Tanggal', t: 'text' };
+    if (kind === 'sales') {
+      var s = v.summary, m = salesModel(v, g);
+      doc.kpis = [['Omzet', s.omzet, 'rp', s.omzet_change_pct], ['Transaksi', s.transaksi, 'num', s.transaksi_change_pct], ['Rata-rata per transaksi', s.rata_rata, 'rp'], ['Total diskon', s.diskon, 'rp']];
+      doc.insights = salesInsights(v);
+      doc.sections.push({ title: g === 'week' ? 'Omzet per Minggu' : 'Omzet per Hari', sheet: 'Omzet ' + (g === 'week' ? 'Mingguan' : 'Harian'),
+        chart: { labels: m.bs.map(function (b) { return b.label; }), series: [{ name: 'Omzet', color: 's1', values: m.omzet }], prev: { name: pn, values: m.prev } },
+        cols: [bucketCol, { h: 'Omzet', t: 'rp' }, { h: 'Transaksi', t: 'num' }, { h: pn, t: 'rp' }, { h: 'Perubahan', t: 'pct' }],
+        rows: m.bs.map(function (b, i) { return [bucketName(b), m.omzet[i], m.count[i], m.prev[i], m.prev[i] === null ? null : chg(m.omzet[i], m.prev[i])]; }),
+        total: ['Total', s.omzet, s.transaksi, null, null] });
+      if (g === 'week') {
+        doc.sections.push({ title: 'Omzet per Hari', sheet: 'Omzet Harian', cols: [{ h: 'Tanggal', t: 'date' }, { h: 'Hari', t: 'text' }, { h: 'Omzet', t: 'rp' }, { h: 'Transaksi', t: 'num' }],
+          rows: v.daily.map(function (x) { return [x.date, WD_FULL[wdIdx(x.date)], x.omzet, x.count]; }), total: ['Total', '', s.omzet, s.transaksi], excelOnly: true });
+      }
+      if (v.daily.length >= 7) {
+        var wm = weekdayModel(v.daily);
+        doc.sections.push({ title: 'Hari Paling Ramai (rata-rata omzet)', sheet: 'Pola Hari',
+          chart: { labels: WD, series: [{ name: 'Rata-rata omzet', color: 's1', values: wm.avg }] },
+          cols: [{ h: 'Hari', t: 'text' }, { h: 'Rata-rata omzet', t: 'rp' }, { h: 'Jumlah hari', t: 'num' }],
+          rows: WD_FULL.map(function (w, i) { return [w, wm.avg[i], wm.cnt[i]]; }) });
+      }
+      doc.sections.push({ title: 'Penjualan per Channel', sheet: 'Channel', cols: [{ h: 'Channel', t: 'text' }, { h: 'Omzet', t: 'rp' }, { h: 'Transaksi', t: 'num' }, { h: 'Porsi', t: 'share' }],
+        rows: v.by_channel.map(function (c) { return [c.label, c.omzet, c.count, c.pct]; }) });
+      doc.sections.push({ title: 'Metode Pembayaran', sheet: 'Metode Bayar', cols: [{ h: 'Metode', t: 'text' }, { h: 'Omzet', t: 'rp' }, { h: 'Transaksi', t: 'num' }],
+        rows: v.by_method.map(function (x) { return [x.label, x.omzet, x.count]; }) });
+    } else if (kind === 'products') {
+      var pbp = v.prev_by_product || {};
+      doc.kpis = [['Total pendapatan produk', v.total_revenue, 'rp', chg(v.total_revenue, v.prev_total_revenue || 0)], ['Total terjual', v.total_quantity, 'num'],
+        ['Jumlah produk terjual', v.by_product.length, 'num'], [pn, v.prev_total_revenue || 0, 'rp']];
+      doc.insights = productInsights(v);
+      doc.sections.push({ title: 'Pendapatan per Produk', sheet: 'Per Produk',
+        hbar: v.by_product.map(function (p) { return { label: p.product_name, value: p.revenue, prev: pbp[p.product_id] ? pbp[p.product_id].revenue : 0 }; }), prevName: pn,
+        cols: [{ h: 'Produk', t: 'text' }, { h: 'Terjual', t: 'num' }, { h: 'Satuan', t: 'text' }, { h: 'Pendapatan', t: 'rp' }, { h: pn, t: 'rp' }, { h: 'Perubahan', t: 'pct' }],
+        rows: v.by_product.map(function (p) { var pr = pbp[p.product_id]; return [p.product_name, p.quantity, p.unit || '', p.revenue, pr ? pr.revenue : 0, pr ? chg(p.revenue, pr.revenue) : null]; }),
+        total: ['Total', v.total_quantity, '', v.total_revenue, v.prev_total_revenue || 0, chg(v.total_revenue, v.prev_total_revenue || 0)] });
+      doc.sections.push({ title: 'Rincian per Varian', sheet: 'Per Varian', cols: [{ h: 'Produk / varian', t: 'text' }, { h: 'Terjual', t: 'num' }, { h: 'Satuan', t: 'text' }, { h: 'Pendapatan', t: 'rp' }, { h: 'Porsi', t: 'share' }],
+        rows: v.rows.map(function (x) { return [x.label, x.quantity, x.unit || '', x.revenue, x.pct]; }), total: ['Total', v.total_quantity, '', v.total_revenue, v.total_revenue ? 100 : 0] });
+    } else {
+      var f = v.summary, fm = financeModel(v, g);
+      doc.kpis = [['Omzet', f.omzet, 'rp', f.omzet_change_pct], ['Pengeluaran', f.pengeluaran, 'rp', f.pengeluaran_change_pct, true], ['Laba bersih sederhana', f.laba_bersih, 'rp'], ['Laba ' + pn.toLowerCase(), f.laba_bersih_prev, 'rp']];
+      doc.insights = financeInsights(v);
+      doc.sections.push({ title: 'Omzet vs Pengeluaran ' + (g === 'week' ? 'per Minggu' : 'per Hari'), sheet: 'Arus ' + (g === 'week' ? 'Mingguan' : 'Harian'),
+        chart: { labels: fm.bs.map(function (b) { return b.label; }), series: [{ name: 'Omzet', color: 's1', values: fm.omzet }, { name: 'Pengeluaran', color: 's2', values: fm.exp }] },
+        chart2: { labels: fm.bs.map(function (b) { return b.label; }), series: [{ name: 'Laba bersih', color: 'signed', values: fm.laba }], title: 'Untung / Rugi' },
+        cols: [bucketCol, { h: 'Omzet', t: 'rp' }, { h: 'Pengeluaran', t: 'rp' }, { h: 'Laba bersih', t: 'rp' }],
+        rows: fm.bs.map(function (b, i) { return [bucketName(b), fm.omzet[i], fm.exp[i], fm.laba[i]]; }), total: ['Total', f.omzet, f.pengeluaran, f.laba_bersih] });
+      doc.sections.push({ title: 'Komposisi Pengeluaran', sheet: 'Kategori Pengeluaran', cols: [{ h: 'Kategori', t: 'text' }, { h: 'Jumlah', t: 'rp' }, { h: 'Porsi', t: 'share' }],
+        rows: v.expense_by_category.map(function (c) { return [c.category, c.amount, c.pct]; }), total: ['Total', f.pengeluaran, f.pengeluaran ? 100 : 0] });
+      doc.sections.push({ title: 'Omzet per Channel', sheet: 'Channel', cols: [{ h: 'Channel', t: 'text' }, { h: 'Omzet', t: 'rp' }, { h: 'Transaksi', t: 'num' }, { h: 'Porsi', t: 'share' }],
+        rows: v.by_channel.map(function (c) { return [c.label, c.omzet, c.count, c.pct]; }) });
+    }
+    doc.note = kind === 'finance' ? v.definitions.laba_bersih : kind === 'products' ? v.definitions.pendapatan_produk : v.definitions.omzet;
+    return doc;
+  }
+  /** Data rincian (transaksi / daftar pengeluaran) diambil saat unduh. */
+  function reportDetails(doc) {
+    var r = doc.range;
+    if (doc.kind === 'sales') {
+      return api('orders', { period: r.period, channel: S.rep.channel }).then(function (o) {
+        var rows = o.orders.filter(function (x) { return x.status === 'COMPLETED'; }).sort(function (a, b) { return (a.order_date + a.order_time).localeCompare(b.order_date + b.order_time); });
+        doc.sections.push({ title: 'Daftar Transaksi Selesai', sheet: 'Transaksi', excelOnly: true,
+          cols: [{ h: 'Tanggal', t: 'date' }, { h: 'Jam', t: 'text' }, { h: 'No. Transaksi', t: 'text' }, { h: 'Channel', t: 'text' }, { h: 'Metode bayar', t: 'text' }, { h: 'Item', t: 'text' }, { h: 'Jumlah item', t: 'num' }, { h: 'Total', t: 'rp' }],
+          rows: rows.map(function (x) { return [x.order_date, x.order_time, x.order_number, x.channel_label, x.payment_method ? pmLabel(x.payment_method) : '', x.items_summary, x.item_count, x.total]; }),
+          total: ['Total', '', '', '', '', '', rows.reduce(function (s, x) { return s + x.item_count; }, 0), rows.reduce(function (s, x) { return s + x.total; }, 0)] });
+        return doc;
+      });
+    }
+    if (doc.kind === 'finance') {
+      return api('expenses', { period: r.period }).then(function (e) {
+        var rows = e.items.slice().sort(function (a, b) { return a.expense_date.localeCompare(b.expense_date); });
+        doc.sections.push({ title: 'Daftar Pengeluaran', sheet: 'Daftar Pengeluaran',
+          cols: [{ h: 'Tanggal', t: 'date' }, { h: 'Kategori', t: 'text' }, { h: 'Keterangan', t: 'text' }, { h: 'Metode', t: 'text' }, { h: 'Jumlah', t: 'rp' }],
+          rows: rows.map(function (x) { return [x.expense_date, x.category, x.description, x.payment_method_label || pmLabel(x.payment_method), x.amount]; }), total: ['Total', '', '', '', e.total] });
+        return doc;
+      });
+    }
+    return Promise.resolve(doc);
+  }
+  function exportName(doc, ext) {
+    var slug = function (t) { return String(t).normalize ? String(t).normalize('NFKD').replace(/[^\w\s-]/g, '').trim().replace(/\s+/g, '-') : String(t).replace(/\s+/g, '-'); };
+    return slug(doc.store || 'Dash Food') + '_' + slug(doc.title) + '_' + doc.range.from + (doc.range.to !== doc.range.from ? '_sd_' + doc.range.to : '') + '.' + ext;
+  }
+  function nowStamp() { var d = new Date(); return fmtDate(deviceToday()) + ' ' + ('0' + d.getHours()).slice(-2) + ':' + ('0' + d.getMinutes()).slice(-2); }
+  function fmtCell(v, t) {
+    if (v === null || v === undefined || v === '') return t === 'pct' && v === null ? '-' : '';
+    if (t === 'rp') return rp(v);
+    if (t === 'num') return num(v);
+    if (t === 'pct') return (v > 0 ? '+' : '') + pctTxt(v) + '%';
+    if (t === 'share') return pctTxt(v) + '%';
+    if (t === 'date') return fmtDate(v);
+    return String(v);
+  }
+  function saveBytes(bytes, mime, filename) {
+    var url = URL.createObjectURL(new Blob([bytes], { type: mime }));
+    var a = document.createElement('a');
+    a.href = url; a.download = filename; a.rel = 'noopener'; document.body.appendChild(a); a.click();
+    setTimeout(function () { URL.revokeObjectURL(url); if (a.parentNode) a.parentNode.removeChild(a); }, 1500);
+  }
+
+  /* ---------- ZIP (tanpa kompresi) untuk .xlsx ---------- */
+  var CRC_T = null;
+  function crc32(b) {
+    if (!CRC_T) { CRC_T = []; for (var n = 0; n < 256; n++) { var c = n; for (var k = 0; k < 8; k++) c = c & 1 ? 0xEDB88320 ^ (c >>> 1) : c >>> 1; CRC_T[n] = c >>> 0; } }
+    var crc = 0xFFFFFFFF; for (var i = 0; i < b.length; i++) crc = CRC_T[(crc ^ b[i]) & 0xFF] ^ (crc >>> 8);
+    return (crc ^ 0xFFFFFFFF) >>> 0;
+  }
+  function utf8(s) { return new TextEncoder().encode(s); }
+  function zipStore(files) {
+    var parts = [], central = [], off = 0;
+    function u16(v) { return [v & 255, (v >>> 8) & 255]; }
+    function u32(v) { return [v & 255, (v >>> 8) & 255, (v >>> 16) & 255, (v >>> 24) & 255]; }
+    var dt = new Date(), dosT = (dt.getHours() << 11) | (dt.getMinutes() << 5) | (dt.getSeconds() >> 1), dosD = ((dt.getFullYear() - 1980) << 9) | ((dt.getMonth() + 1) << 5) | dt.getDate();
+    files.forEach(function (f) {
+      var name = utf8(f.name), data = utf8(f.data), crc = crc32(data);
+      var head = [].concat(u16(20), u16(0x0800), u16(0), u16(dosT), u16(dosD), u32(crc), u32(data.length), u32(data.length), u16(name.length), u16(0));
+      parts.push(new Uint8Array([0x50, 0x4B, 0x03, 0x04].concat(head)), name, data);
+      central.push(new Uint8Array([0x50, 0x4B, 0x01, 0x02].concat(u16(20), head, u16(0), u16(0), u16(0), u32(0), u32(off))), name);
+      off += 30 + name.length + data.length;
+    });
+    var cSize = central.reduce(function (s, p) { return s + p.length; }, 0);
+    var end = new Uint8Array([0x50, 0x4B, 0x05, 0x06, 0, 0, 0, 0].concat(u16(files.length), u16(files.length), u32(cSize), u32(off), u16(0)));
+    var all = parts.concat(central, [end]), len = all.reduce(function (s, p) { return s + p.length; }, 0), out = new Uint8Array(len), pos = 0;
+    all.forEach(function (p) { out.set(p, pos); pos += p.length; });
+    return out;
+  }
+
+  /* ---------- Excel (.xlsx / SpreadsheetML) ---------- */
+  // Sengaja dirangkai: tanda tanya-kurung siku dibaca HtmlService Apps Script sebagai scriptlet.
+  var XML_HEAD = '<' + '?xml version="1.0" encoding="UTF-8" standalone="yes"?' + '>';
+  function xmlEsc(s) { return String(s).replace(/[<>&"]/g, function (c) { return { '<': '&lt;', '>': '&gt;', '&': '&amp;', '"': '&quot;' }[c]; }).replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g, ''); }
+  function colName(i) { var s = ''; i++; while (i) { var m = (i - 1) % 26; s = String.fromCharCode(65 + m) + s; i = Math.floor((i - 1) / 26); } return s; }
+  function excelDate(d) { var p = String(d).split('-'); return Math.round((Date.UTC(+p[0], +p[1] - 1, +p[2]) - Date.UTC(1899, 11, 30)) / 86400000); }
+  // Gaya: 0 biasa · 1 judul kolom · 2 Rupiah · 3 angka · 4 perubahan % · 5 judul besar · 6 abu · 7 Rp tebal · 8 angka tebal · 9 tanggal · 10 teks tebal · 11 perubahan % tebal · 12 teks dibungkus · 13 porsi % · 14 porsi % tebal
+  var XF = { text: 0, head: 1, rp: 2, num: 3, pct: 4, title: 5, muted: 6, rpB: 7, numB: 8, date: 9, textB: 10, pctB: 11, wrap: 12, share: 13, shareB: 14 };
+  function xCell(ref, v, style) {
+    if (v === null || v === undefined || v === '') return style ? '<c r="' + ref + '" s="' + style + '"/>' : '';
+    if (typeof v === 'number' && (style === XF.pct || style === XF.pctB || style === XF.share || style === XF.shareB)) v = Math.round(v * 10) / 1000; // 13,5 → 0,135 (format % Excel)
+    if (typeof v === 'number' && isFinite(v)) return '<c r="' + ref + '" s="' + style + '"><v>' + v + '</v></c>';
+    return '<c r="' + ref + '" s="' + style + '" t="inlineStr"><is><t xml:space="preserve">' + xmlEsc(v) + '</t></is></c>';
+  }
+  function xSheet(rows, widths, opts) {
+    opts = opts || {};
+    var body = rows.map(function (r, ri) {
+      return '<row r="' + (ri + 1) + '"' + (r.ht ? ' ht="' + r.ht + '" customHeight="1"' : '') + '>' + r.cells.map(function (c, ci) { return xCell(colName(ci) + (ri + 1), c[0], c[1]); }).join('') + '</row>';
+    }).join('');
+    var pane = opts.freeze ? '<sheetViews><sheetView workbookViewId="0"><pane ySplit="' + opts.freeze + '" topLeftCell="A' + (opts.freeze + 1) + '" activePane="bottomLeft" state="frozen"/></sheetView></sheetViews>' : '<sheetViews><sheetView workbookViewId="0"/></sheetViews>';
+    return XML_HEAD + '<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">' +
+      pane + '<cols>' + widths.map(function (w, i) { return '<col min="' + (i + 1) + '" max="' + (i + 1) + '" width="' + w + '" customWidth="1"/>'; }).join('') + '</cols>' +
+      '<sheetData>' + body + '</sheetData>' + (opts.filter ? '<autoFilter ref="' + opts.filter + '"/>' : '') +
+      '<pageMargins left="0.5" right="0.5" top="0.6" bottom="0.6" header="0.3" footer="0.3"/><pageSetup paperSize="9" orientation="portrait" fitToWidth="1" fitToHeight="0"/></worksheet>';
+  }
+  function cellStyle(t, bold) { return bold ? ({ rp: XF.rpB, num: XF.numB, pct: XF.pctB, share: XF.shareB }[t] || XF.textB) : ({ rp: XF.rp, num: XF.num, pct: XF.pct, share: XF.share, date: XF.date }[t] || XF.text); }
+  function buildXlsx(doc) {
+    var sheets = [];
+    // Ringkasan
+    var rs = [];
+    rs.push({ ht: 24, cells: [[doc.store + ' · ' + doc.title, XF.title]] });
+    rs.push({ cells: [['Periode', XF.muted], [doc.period, XF.textB]] });
+    rs.push({ cells: [['Dibandingkan dengan', XF.muted], [doc.compare, XF.text]] });
+    if (doc.channel) rs.push({ cells: [['Channel', XF.muted], [doc.channel, XF.text]] });
+    rs.push({ cells: [['Dibuat', XF.muted], [nowStamp() + ' · Dash Food POS v1.7', XF.text]] });
+    rs.push({ cells: [] });
+    rs.push({ cells: [['Angka utama', XF.head], ['Nilai', XF.head], ['Perubahan vs ' + prevName(doc.range).toLowerCase(), XF.head]] });
+    doc.kpis.forEach(function (k) { rs.push({ cells: [[k[0], XF.text], [k[1], cellStyle(k[2])], [k[3] === undefined ? '' : (k[3] === null ? '-' : k[3]), k[3] === null || k[3] === undefined ? XF.text : XF.pct]] }); });
+    rs.push({ cells: [] });
+    rs.push({ cells: [['Kesimpulan singkat', XF.head], ['', XF.head], ['', XF.head]] });
+    doc.insights.forEach(function (t, i) { rs.push({ cells: [[(i + 1) + '. ' + t.text, XF.text]] }); });
+    rs.push({ cells: [] });
+    if (doc.note) rs.push({ cells: [['Catatan: ' + doc.note, XF.muted]] });
+    rs.push({ cells: [['Tiap tab di bawah berisi rincian tabel. Angka Rupiah & tanggal bisa langsung dijumlah, diurutkan, dan difilter.', XF.muted]] });
+    sheets.push({ name: 'Ringkasan', xml: xSheet(rs, [46, 26, 30]) });
+    var used = { Ringkasan: 1 };
+    doc.sections.forEach(function (sec) {
+      var name = String(sec.sheet || sec.title).replace(/[\[\]:*?\/\\]/g, ' ').substring(0, 31);
+      while (used[name]) name = name.substring(0, 28) + ' ' + (++used[name]);
+      used[name] = 1;
+      var rows = [{ cells: sec.cols.map(function (c) { return [c.h, XF.head]; }) }];
+      sec.rows.forEach(function (r) { rows.push({ cells: r.map(function (v, i) { var t = sec.cols[i].t; return [t === 'date' && v ? excelDate(v) : v, cellStyle(t)]; }) }); });
+      if (!sec.rows.length) rows.push({ cells: [['Tidak ada data pada periode ini.', XF.muted]] });
+      if (sec.total && sec.rows.length) rows.push({ cells: sec.total.map(function (v, i) { return [v, cellStyle(i === 0 ? 'text' : sec.cols[i].t, true)]; }) });
+      var widths = sec.cols.map(function (c, i) {
+        var w = c.h.length;
+        sec.rows.forEach(function (r) { w = Math.max(w, fmtCell(r[i], c.t).length); });
+        return Math.min(Math.max(w + 3, c.t === 'rp' ? 15 : 9), 48);
+      });
+      sheets.push({ name: name, xml: xSheet(rows, widths, { freeze: 1, filter: sec.rows.length ? 'A1:' + colName(sec.cols.length - 1) + (sec.rows.length + 1) : '' }) });
+    });
+    var styles = XML_HEAD + '<styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">' +
+      '<numFmts count="5"><numFmt numFmtId="164" formatCode="&quot;Rp&quot;\\ #,##0;\\-&quot;Rp&quot;\\ #,##0"/><numFmt numFmtId="165" formatCode="+0.0%;\\-0.0%;0%"/><numFmt numFmtId="166" formatCode="#,##0"/><numFmt numFmtId="167" formatCode="dd/mm/yyyy"/><numFmt numFmtId="168" formatCode="0.0%"/></numFmts>' +
+      '<fonts count="4"><font><sz val="11"/><name val="Calibri"/><family val="2"/></font><font><b/><sz val="11"/><name val="Calibri"/><family val="2"/></font><font><b/><sz val="14"/><name val="Calibri"/><family val="2"/></font><font><sz val="10"/><color rgb="FF6F6760"/><name val="Calibri"/><family val="2"/></font></fonts>' +
+      '<fills count="3"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill><fill><patternFill patternType="solid"><fgColor rgb="FFF2F1EE"/><bgColor indexed="64"/></patternFill></fill></fills>' +
+      '<borders count="2"><border><left/><right/><top/><bottom/><diagonal/></border><border><left/><right/><top/><bottom style="thin"><color rgb="FFCFCAC4"/></bottom><diagonal/></border></borders>' +
+      '<cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs><cellXfs count="15">' +
+      '<xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/>' +
+      '<xf numFmtId="0" fontId="1" fillId="2" borderId="1" xfId="0" applyFont="1" applyFill="1" applyBorder="1"/>' +
+      '<xf numFmtId="164" fontId="0" fillId="0" borderId="0" xfId="0" applyNumberFormat="1"/>' +
+      '<xf numFmtId="166" fontId="0" fillId="0" borderId="0" xfId="0" applyNumberFormat="1"/>' +
+      '<xf numFmtId="165" fontId="0" fillId="0" borderId="0" xfId="0" applyNumberFormat="1"/>' +
+      '<xf numFmtId="0" fontId="2" fillId="0" borderId="0" xfId="0" applyFont="1"/>' +
+      '<xf numFmtId="0" fontId="3" fillId="0" borderId="0" xfId="0" applyFont="1"/>' +
+      '<xf numFmtId="164" fontId="1" fillId="2" borderId="0" xfId="0" applyNumberFormat="1" applyFont="1" applyFill="1"/>' +
+      '<xf numFmtId="166" fontId="1" fillId="2" borderId="0" xfId="0" applyNumberFormat="1" applyFont="1" applyFill="1"/>' +
+      '<xf numFmtId="167" fontId="0" fillId="0" borderId="0" xfId="0" applyNumberFormat="1"/>' +
+      '<xf numFmtId="0" fontId="1" fillId="2" borderId="0" xfId="0" applyFont="1" applyFill="1"/>' +
+      '<xf numFmtId="165" fontId="1" fillId="2" borderId="0" xfId="0" applyNumberFormat="1" applyFont="1" applyFill="1"/>' +
+      '<xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0" applyAlignment="1"><alignment wrapText="1" vertical="top"/></xf>' +
+      '<xf numFmtId="168" fontId="0" fillId="0" borderId="0" xfId="0" applyNumberFormat="1"/>' +
+      '<xf numFmtId="168" fontId="1" fillId="2" borderId="0" xfId="0" applyNumberFormat="1" applyFont="1" applyFill="1"/>' +
+      '</cellXfs><cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles></styleSheet>';
+    var files = [
+      { name: '[Content_Types].xml', data: XML_HEAD + '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/><Override PartName="/docProps/core.xml" ContentType="application/vnd.openxmlformats-package.core-properties+xml"/>' +
+        sheets.map(function (s, i) { return '<Override PartName="/xl/worksheets/sheet' + (i + 1) + '.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>'; }).join('') + '</Types>' },
+      { name: '_rels/.rels', data: XML_HEAD + '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/><Relationship Id="rId2" Type="http://schemas.openxmlformats.org/package/2006/relationships/metadata/core-properties" Target="docProps/core.xml"/></Relationships>' },
+      { name: 'docProps/core.xml', data: XML_HEAD + '<cp:coreProperties xmlns:cp="http://schemas.openxmlformats.org/package/2006/metadata/core-properties" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:dcterms="http://purl.org/dc/terms/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><dc:title>' + xmlEsc(doc.title + ' ' + doc.period) + '</dc:title><dc:creator>Dash Food POS</dc:creator><dcterms:created xsi:type="dcterms:W3CDTF">' + new Date().toISOString().replace(/\.\d+Z$/, 'Z') + '</dcterms:created></cp:coreProperties>' },
+      { name: 'xl/workbook.xml', data: XML_HEAD + '<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets>' +
+        sheets.map(function (s, i) { return '<sheet name="' + xmlEsc(s.name) + '" sheetId="' + (i + 1) + '" r:id="rId' + (i + 1) + '"/>'; }).join('') + '</sheets>' +
+        '<definedNames>' + sheets.map(function (s, i) { return /autoFilter/.test(s.xml) ? '<definedName name="_xlnm._FilterDatabase" localSheetId="' + i + '" hidden="1">\'' + xmlEsc(s.name).replace(/'/g, "''") + '\'!' + s.xml.match(/autoFilter ref="([^"]+)"/)[1].replace(/([A-Z]+)(\d+)/g, '$$$1$$$2') + '</definedName>' : ''; }).join('') + '</definedNames></workbook>' },
+      { name: 'xl/_rels/workbook.xml.rels', data: XML_HEAD + '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">' +
+        sheets.map(function (s, i) { return '<Relationship Id="rId' + (i + 1) + '" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet' + (i + 1) + '.xml"/>'; }).join('') +
+        '<Relationship Id="rId' + (sheets.length + 1) + '" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>' },
+      { name: 'xl/styles.xml', data: styles }
+    ].concat(sheets.map(function (s, i) { return { name: 'xl/worksheets/sheet' + (i + 1) + '.xml', data: s.xml }; }));
+    return zipStore(files);
+  }
+
+  /* ---------- PDF (A4, Helvetica, grafik vektor) ---------- */
+  // Lebar huruf Helvetica / Helvetica-Bold (AFM, per 1000 em) untuk kode 32–126.
+  var HV = [278,278,355,556,556,889,667,191,333,333,389,584,278,333,278,278,556,556,556,556,556,556,556,556,556,556,278,278,584,584,584,556,1015,667,667,722,722,667,611,778,722,278,500,667,556,833,722,778,667,778,722,667,611,722,667,944,667,667,611,278,278,278,469,556,333,556,556,500,556,556,278,556,556,222,222,500,222,833,556,556,556,556,333,500,278,556,500,722,500,500,500,334,260,334,584];
+  var HVB = [278,333,474,556,556,889,722,238,333,333,389,584,278,333,278,278,556,556,556,556,556,556,556,556,556,556,333,333,584,584,584,611,975,722,722,722,722,667,611,778,722,278,556,722,611,833,722,778,667,778,722,667,611,722,667,944,667,667,611,333,278,333,584,556,333,556,611,556,611,556,333,611,611,278,278,556,278,889,611,611,611,611,389,556,333,611,556,778,556,556,500,389,280,389,584];
+  var WIN = { '–': 150, '—': 151, '•': 149, '‘': 145, '’': 146, '“': 147, '”': 148, '…': 133, '€': 128 };
+  function pdfText(s) {
+    var o = '';
+    String(s).split('').forEach(function (ch) { var c = ch.charCodeAt(0); o += c < 128 || (c >= 160 && c < 256) ? ch : (WIN[ch] ? String.fromCharCode(WIN[ch]) : '?'); });
+    return o;
+  }
+  function textW(s, size, bold) {
+    var t = pdfText(s), w = 0, tbl = bold ? HVB : HV;
+    for (var i = 0; i < t.length; i++) { var c = t.charCodeAt(i); w += c >= 32 && c <= 126 ? tbl[c - 32] : c === 150 ? 556 : c === 151 || c === 133 ? 1000 : c === 149 ? 350 : 556; }
+    return w * size / 1000;
+  }
+  function rgb(hex) { var n = parseInt(hex.slice(1), 16); return [(n >> 16 & 255) / 255, (n >> 8 & 255) / 255, (n & 255) / 255].map(function (x) { return x.toFixed(3); }).join(' '); }
+  var PC = { ink: '#1A1613', muted: '#6F6760', faint: '#8E867F', grid: '#E2DFDA', soft: '#F2F1EE', s1: '#2A78D6', s2: '#EB6834', prev: '#6F6760', good: '#0CA30C', bad: '#D03B3B', band: '#EEF3FB' };
+  function PdfDoc() {
+    this.W = 595.28; this.H = 841.89; this.M = 40; this.pages = []; this.newPage();
+  }
+  PdfDoc.prototype.newPage = function () { this.ops = []; this.pages.push(this.ops); this.y = this.M; };
+  PdfDoc.prototype.Y = function (y) { return (this.H - y).toFixed(2); };
+  PdfDoc.prototype.text = function (x, y, s, o) {
+    o = o || {}; var size = o.size || 9.5, t = pdfText(s), w = textW(s, size, o.bold);
+    if (o.max && w > o.max) { while (t.length > 1 && textW(t + '...', size, o.bold) > o.max) t = t.slice(0, -1); t += '...'; w = textW(t, size, o.bold); }
+    var xx = o.align === 'right' ? x - w : o.align === 'center' ? x - w / 2 : x;
+    this.ops.push('BT /' + (o.bold ? 'F2' : 'F1') + ' ' + size + ' Tf ' + rgb(o.color || PC.ink) + ' rg ' + xx.toFixed(2) + ' ' + this.Y(y) + ' Td (' + t.replace(/\\/g, '\\\\').replace(/\(/g, '\\(').replace(/\)/g, '\\)') + ') Tj ET');
+  };
+  PdfDoc.prototype.rect = function (x, y, w, h, color) { this.ops.push(rgb(color) + ' rg ' + x.toFixed(2) + ' ' + (this.H - y - h).toFixed(2) + ' ' + w.toFixed(2) + ' ' + h.toFixed(2) + ' re f'); };
+  PdfDoc.prototype.line = function (x1, y1, x2, y2, color, w) { this.ops.push(rgb(color) + ' RG ' + (w || 0.6) + ' w 1 J ' + x1.toFixed(2) + ' ' + this.Y(y1) + ' m ' + x2.toFixed(2) + ' ' + this.Y(y2) + ' l S'); };
+  /** Batang dengan ujung data membulat (r) dan pangkal rata di garis dasar. */
+  PdfDoc.prototype.bar = function (x, w, base, top, color) {
+    var h = Math.abs(base - top); if (h < 0.3) return;
+    var r = Math.min(2.5, w / 2, h), k = 0.5523 * r, up = top < base, Y = this.Y.bind(this), f = function (v) { return v.toFixed(2); };
+    var yb = base, yt = top, s = up ? 1 : -1;
+    this.ops.push(rgb(color) + ' rg ' + f(x) + ' ' + Y(yb) + ' m ' + f(x) + ' ' + Y(yt + s * r) + ' l ' +
+      f(x) + ' ' + Y(yt + s * (r - k)) + ' ' + f(x + r - k) + ' ' + Y(yt) + ' ' + f(x + r) + ' ' + Y(yt) + ' c ' + f(x + w - r) + ' ' + Y(yt) + ' l ' +
+      f(x + w - r + k) + ' ' + Y(yt) + ' ' + f(x + w) + ' ' + Y(yt + s * (r - k)) + ' ' + f(x + w) + ' ' + Y(yt + s * r) + ' c ' + f(x + w) + ' ' + Y(yb) + ' l h f');
+  };
+  PdfDoc.prototype.ensure = function (h) { if (this.y + h > this.H - this.M - 18) { this.newPage(); return true; } return false; };
+  PdfDoc.prototype.wrap = function (s, size, maxW, bold) {
+    var words = String(s).split(/\s+/), lines = [], cur = '';
+    words.forEach(function (w) { var t = cur ? cur + ' ' + w : w; if (textW(t, size, bold) > maxW && cur) { lines.push(cur); cur = w; } else cur = t; });
+    if (cur) lines.push(cur);
+    return lines;
+  };
+  PdfDoc.prototype.heading = function (t, need) { this.ensure(40 + (need || 0)); this.y += 10; this.text(this.M, this.y + 11, t, { size: 12, bold: true }); this.y += 22; };
+  PdfDoc.prototype.colChart = function (c) {
+    var M = this.M, W = this.W - 2 * M, H = 150, L = 46, B = 18, T = 8;
+    this.ensure(H + 30);
+    var y0 = this.y, all = [0], self = this;
+    c.series.forEach(function (s) { all = all.concat(s.values); });
+    if (c.prev) all = all.concat(c.prev.values.filter(function (v) { return v !== null && v !== undefined; }));
+    var lo = Math.min.apply(null, all), hi = Math.max.apply(null, all); if (hi === lo) hi = lo + 100000;
+    var step = niceStep(hi - lo, 4), yMin = Math.floor(lo / step) * step, yMax = Math.ceil(hi / step) * step;
+    function y(v) { return y0 + T + (H - T - B) * (1 - (v - yMin) / (yMax - yMin)); }
+    // legenda
+    var lx = M + L, ly = y0 + 6;
+    var leg = [];
+    c.series.forEach(function (s) { if (s.color === 'signed') { leg.push(['Untung', PC.good, 'box'], ['Rugi', PC.bad, 'box']); } else leg.push([s.name, PC[s.color], 'box']); });
+    if (c.prev) leg.push([c.prev.name, PC.prev, 'line']);
+    if (leg.length > 1 || c.prev) {
+      leg.forEach(function (l) {
+        if (l[2] === 'box') self.rect(lx, ly - 7, 8, 8, l[1]); else self.line(lx, ly - 3, lx + 10, ly - 3, l[1], 1.6);
+        self.text(lx + 13, ly, l[0], { size: 8.5, color: PC.muted }); lx += 13 + textW(l[0], 8.5) + 16;
+      });
+      y0 += 18;
+    }
+    for (var gv = yMin; gv <= yMax + step / 2; gv += step) {
+      this.line(M + L, y(gv), M + W, y(gv), Math.abs(gv) < step / 1e6 ? PC.faint : PC.grid, Math.abs(gv) < step / 1e6 ? 0.8 : 0.5);
+      this.text(M + L - 6, y(gv) + 3, axisRp(Math.round(gv)), { size: 7.5, color: PC.muted, align: 'right' });
+    }
+    var n = c.labels.length, slot = (W - L) / n, k = c.series.length, gap = k > 1 ? 1.5 : 0;
+    var bw = Math.max(1.5, Math.min(18, (slot * 0.6 - gap * (k - 1)) / k)), gw = bw * k + gap * (k - 1), base = y(Math.max(yMin, Math.min(0, yMax)));
+    var every = n <= 12 ? 1 : n <= 24 ? 2 : 3;
+    for (var i = 0; i < n; i++) {
+      var cx = M + L + slot * i + slot / 2, x0 = cx - gw / 2;
+      c.series.forEach(function (s, si) { var v = s.values[i] || 0; self.bar(x0 + si * (bw + gap), bw, base, y(v), s.color === 'signed' ? (v < 0 ? PC.bad : PC.good) : PC[s.color]); });
+      if (c.prev && c.prev.values[i] !== null && c.prev.values[i] !== undefined) this.line(cx - gw / 2 - 2.5, y(c.prev.values[i]), cx + gw / 2 + 2.5, y(c.prev.values[i]), PC.prev, 1.4);
+      if (i % every === 0) this.text(cx, y0 + H - 4, c.labels[i], { size: 7.5, color: PC.muted, align: 'center' });
+    }
+    this.y = y0 + H + 8;
+  };
+  PdfDoc.prototype.hbars = function (rows, prevName) {
+    var M = this.M, W = this.W - 2 * M, self = this, max = Math.max.apply(null, [1].concat(rows.map(function (r) { return Math.max(r.value, r.prev || 0); })));
+    var labW = 150, valW = 80, trackW = W - labW - valW - 12;
+    this.ensure(16);
+    this.rect(M, this.y - 7, 8, 8, PC.s1); this.text(M + 12, this.y, 'Periode ini', { size: 8.5, color: PC.muted });
+    var lx = M + 12 + textW('Periode ini', 8.5) + 16; this.line(lx, this.y - 7, lx, this.y + 1, PC.prev, 1.6); this.text(lx + 6, this.y, prevName, { size: 8.5, color: PC.muted });
+    this.y += 10;
+    rows.forEach(function (r) {
+      self.ensure(20);
+      var yy = self.y + 12;
+      self.text(M, yy, r.label, { size: 9, max: labW - 8 });
+      self.rect(M + labW, yy - 7, trackW, 8, PC.soft);
+      if (r.value) self.rect(M + labW, yy - 7, Math.max(trackW * r.value / max, 1), 8, PC.s1);
+      if (r.prev) self.line(M + labW + trackW * r.prev / max, yy - 10, M + labW + trackW * r.prev / max, yy + 3, PC.prev, 1.6);
+      self.text(M + W, yy, rp(r.value), { size: 9, bold: true, align: 'right' });
+      self.y += 18;
+    });
+    this.y += 4;
+  };
+  PdfDoc.prototype.table = function (sec) {
+    var M = this.M, W = this.W - 2 * M, self = this, cols = sec.cols;
+    var natural = cols.map(function (c, i) {
+      var w = textW(c.h, 8.5, true);
+      sec.rows.concat(sec.total ? [sec.total] : []).forEach(function (r) { w = Math.max(w, textW(fmtCell(r[i], c.t), 8.5, true)); });
+      return Math.min(w + 12, c.t === 'text' ? 220 : 110);
+    });
+    var sum = natural.reduce(function (a, b) { return a + b; }, 0);
+    var widths = natural.map(function (w) { return w * W / sum; });
+    function head() {
+      self.rect(M, self.y, W, 18, PC.soft);
+      var x = M; cols.forEach(function (c, i) { self.text(c.t === 'text' || c.t === 'date' ? x + 6 : x + widths[i] - 6, self.y + 12, c.h, { size: 8.5, bold: true, color: PC.muted, align: c.t === 'text' || c.t === 'date' ? 'left' : 'right', max: widths[i] - 10 }); x += widths[i]; });
+      self.y += 18;
+    }
+    function row(r, bold) {
+      if (self.ensure(17)) head();
+      if (bold) self.rect(M, self.y, W, 17, PC.soft);
+      var x = M;
+      cols.forEach(function (c, i) {
+        var t = fmtCell(r[i], i === 0 && bold ? 'text' : c.t), left = c.t === 'text' || c.t === 'date';
+        var col = c.t === 'pct' && typeof r[i] === 'number' ? (r[i] > 0 ? '#12784A' : r[i] < 0 ? '#C42F2F' : PC.ink) : PC.ink;
+        self.text(left ? x + 6 : x + widths[i] - 6, self.y + 11.5, t, { size: 8.5, bold: bold, align: left ? 'left' : 'right', max: widths[i] - 10, color: col });
+        x += widths[i];
+      });
+      self.y += 17;
+      if (!bold) self.line(M, self.y, M + W, self.y, PC.grid, 0.4);
+    }
+    this.ensure(40); head();
+    if (!sec.rows.length) { this.text(M + 6, this.y + 12, 'Tidak ada data pada periode ini.', { size: 9, color: PC.muted }); this.y += 18; }
+    sec.rows.forEach(function (r) { row(r, false); });
+    if (sec.total && sec.rows.length) row(sec.total, true);
+    this.y += 6;
+  };
+  PdfDoc.prototype.output = function (footer) {
+    var objs = [], self = this, n = this.pages.length;
+    // 1 katalog, 2 daftar halaman, 3 F1, 4 F2, lalu (konten, halaman) per halaman
+    objs[1] = '<< /Type /Catalog /Pages 2 0 R >>';
+    objs[3] = '<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>';
+    objs[4] = '<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold /Encoding /WinAnsiEncoding >>';
+    var kids = [];
+    this.pages.forEach(function (ops, i) {
+      self.ops = ops;
+      self.line(self.M, self.H - 30, self.W - self.M, self.H - 30, PC.grid, 0.5);
+      self.text(self.M, self.H - 18, footer, { size: 7.5, color: PC.faint });
+      self.text(self.W - self.M, self.H - 18, 'Halaman ' + (i + 1) + ' dari ' + n, { size: 7.5, color: PC.faint, align: 'right' });
+      var content = ops.join('\n'), cId = 5 + i * 2, pId = 6 + i * 2;
+      objs[cId] = '<< /Length ' + content.length + ' >>\nstream\n' + content + '\nendstream';
+      objs[pId] = '<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ' + self.W + ' ' + self.H + '] /Resources << /Font << /F1 3 0 R /F2 4 0 R >> >> /Contents ' + cId + ' 0 R >>';
+      kids.push(pId + ' 0 R');
+    });
+    objs[2] = '<< /Type /Pages /Kids [' + kids.join(' ') + '] /Count ' + n + ' >>';
+    var out = '%PDF-1.4\n%\xE2\xE3\xCF\xD3\n', offs = [];
+    for (var i = 1; i < objs.length; i++) { offs[i] = out.length; out += i + ' 0 obj\n' + objs[i] + '\nendobj\n'; }
+    var xref = out.length;
+    out += 'xref\n0 ' + objs.length + '\n0000000000 65535 f \n';
+    for (var j = 1; j < objs.length; j++) out += ('000000000' + offs[j]).slice(-10) + ' 00000 n \n';
+    out += 'trailer\n<< /Size ' + objs.length + ' /Root 1 0 R >>\nstartxref\n' + xref + '\n%%EOF';
+    var bytes = new Uint8Array(out.length);
+    for (var b = 0; b < out.length; b++) bytes[b] = out.charCodeAt(b) & 255;
+    return bytes;
+  };
+  function buildPdf(doc) {
+    var p = new PdfDoc(), M = p.M, W = p.W - 2 * M;
+    // Kepala
+    p.text(M, p.y + 12, doc.store, { size: 10, color: PC.muted });
+    p.text(M, p.y + 32, doc.title, { size: 20, bold: true });
+    p.text(M, p.y + 50, 'Periode: ' + doc.period, { size: 10 });
+    p.text(M, p.y + 64, 'Dibandingkan dengan: ' + doc.compare + (doc.channel ? '   ·   Channel: ' + doc.channel : ''), { size: 9, color: PC.muted });
+    p.y += 78;
+    // Kartu angka utama
+    var cw = (W - 8 * 3) / 4;
+    doc.kpis.forEach(function (k, i) {
+      var x = M + i * (cw + 8);
+      p.rect(x, p.y, cw, 54, PC.soft);
+      p.text(x + 9, p.y + 15, k[0], { size: 8, color: PC.muted, max: cw - 16 });
+      var val = fmtCell(k[1], k[2]), size = 13;
+      while (textW(val, size, true) > cw - 16 && size > 8) size -= 0.5;
+      p.text(x + 9, p.y + 33, val, { size: size, bold: true });
+      if (k[3] !== undefined) p.text(x + 9, p.y + 47, k[3] === null ? 'Belum ada pembanding' : (k[3] > 0 ? '+' : '') + pctTxt(k[3]) + '% vs sebelumnya', { size: 7.5, color: k[3] === null ? PC.faint : (k[3] >= 0) !== !!k[4] ? '#12784A' : '#C42F2F', max: cw - 16 });
+    });
+    p.y += 66;
+    // Kesimpulan
+    if (doc.insights.length) {
+      var lines = [];
+      doc.insights.forEach(function (t) { p.wrap(t.text, 9.5, W - 34).forEach(function (l, li) { lines.push({ t: l, first: li === 0, tone: t.tone }); }); });
+      var h = 26 + lines.length * 13.5;
+      p.ensure(h);
+      p.rect(M, p.y, W, h, '#EEF3FB');
+      p.text(M + 12, p.y + 17, 'Kesimpulan singkat', { size: 10.5, bold: true });
+      var yy = p.y + 33;
+      lines.forEach(function (l) {
+        if (l.first) p.rect(M + 13, yy - 6, 4.5, 4.5, l.tone === 'good' ? PC.good : l.tone === 'bad' ? PC.bad : l.tone === 'warn' ? '#E8930C' : PC.s1);
+        p.text(M + 24, yy, l.t, { size: 9.5 }); yy += 13.5;
+      });
+      p.y += h + 4;
+    }
+    doc.sections.forEach(function (sec) {
+      if (sec.excelOnly) return;
+      p.heading(sec.title, sec.chart && sec.rows.length ? 190 : sec.hbar && sec.hbar.length ? 60 : 40);
+      if (sec.chart && sec.rows.length) p.colChart(sec.chart);
+      if (sec.chart2 && sec.rows.length) { p.ensure(180); p.text(M, p.y + 10, sec.chart2.title, { size: 10, bold: true }); p.y += 26; p.colChart(sec.chart2); }
+      if (sec.hbar && sec.hbar.length) p.hbars(sec.hbar, sec.prevName);
+      p.table(sec);
+    });
+    if (doc.note) {
+      var nl = p.wrap('Catatan: ' + doc.note, 8.5, W);
+      p.ensure(nl.length * 12 + 10); p.y += 6;
+      nl.forEach(function (l) { p.text(M, p.y + 10, l, { size: 8.5, color: PC.muted }); p.y += 12; });
+    }
+    return p.output(doc.store + ' · ' + doc.title + ' · dibuat ' + nowStamp() + ' · Dash Food POS v1.7');
+  }
+  ACTIONS.repExport = function (el) {
+    var kind = el.dataset.kind, fmt = el.dataset.fmt, label = el.innerHTML;
+    var doc = reportDoc(kind);
+    if (!doc) { toast('Tunggu laporan selesai dimuat dulu.', 'warn'); return; }
+    el.disabled = true; el.innerHTML = '<span class="spinner sm" style="border-color:var(--surface-3);border-top-color:var(--brand-ink)"></span> Menyiapkan…';
+    reportDetails(doc).catch(function () { return doc; }).then(function (dc) {
+      var name = exportName(dc, fmt);
+      if (fmt === 'xlsx') saveBytes(buildXlsx(dc), 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', name);
+      else saveBytes(buildPdf(dc), 'application/pdf', name);
+      toast((fmt === 'xlsx' ? 'File Excel' : 'File PDF') + ' diunduh: ' + name);
+    }).catch(function (e) {
+      toast('Gagal membuat file: ' + errMsg(e), 'error');
+    }).then(function () { el.disabled = false; el.innerHTML = label; });
+  };
+  window.__DF_EXPORT = { reportDoc: reportDoc, buildXlsx: buildXlsx, buildPdf: buildPdf, reportDetails: reportDetails };
 
   /* Pengaturan */
   function saveSettingsValues(form, values, after) {
@@ -2482,14 +3511,7 @@
     saveSettingsValues(form, { receipt_footer: form.receipt_footer.value.trim(), receipt_show_logo: form.receipt_show_logo.checked ? 'TRUE' : 'FALSE',
       receipt_logo_url: form.receipt_logo_url.value.trim() });
   };
-  ACTIONS.testPrint = function () {
-    var sample = { order_number: 'CONTOH-CETAK-UJI', order_date: S.today, order_time: '00:00', channel_label: 'Offline', cashier_name: S.user.display_name, external_order_id: '',
-      items: [{ product_name: 'Contoh Produk', variant_label: 'Contoh Topping', notes: '', quantity: 1, unit_price: 10000, topping_total: 2000, line_total: 12000 }],
-      subtotal: 12000, discount: 0, total: 12000, notes: 'STRUK UJI — BUKAN TRANSAKSI', status: 'COMPLETED',
-      payment: { payment_method_label: 'Cash', received_amount: 20000, change_amount: 8000 } };
-    document.getElementById('print-root').innerHTML = receiptHtml(sample);
-    setTimeout(function () { window.print(); }, 50);
-  };
+  ACTIONS.testPrint = function () { printOrder(sampleOrder()).catch(function () { /* pesan sudah ditampilkan */ }); };
   ACTIONS.catEdit = function (el) {
     var type = el.dataset.type, key = 'cats|' + type;
     var c = el.dataset.id && S.data[key] ? S.data[key].value.filter(function (x) { return x.category_id === el.dataset.id; })[0] : null;
@@ -3105,7 +4127,7 @@
       var dash = dcGet('dash|today');
       // Angka "Hari ini" dari kemarin tidak ditampilkan: hanya dipakai bila tanggalnya sama.
       if (dash && bc.today === deviceToday()) S.data['dash|today'] = { status: 'ok', value: dash.v, at: Date.now() };
-      S.stack = [{ name: 'dashboard', params: {} }];
+      S.stack = [{ name: homeTab(), params: {} }];
       render();
       startSession({ background: true }).catch(function (e) {
         if (e.code === 'AUTH_REQUIRED') { dcClear(); store('bootc', null); S.user = null; S.token = null; store('token', null); S.data = {}; render(); return; }
@@ -3122,7 +4144,8 @@
   ACTIONS.retry = function (el) { if (el.dataset.key === '__boot') { app.innerHTML = '<div class="boot-skel">' + skeleton('dash', 'Memuat Dash Food…') + '</div>'; boot(); return; } origRetry(el); };
 
   // Hook untuk test otomatis (tidak dipakai UI).
-  window.__DF = { S: S, ACTIONS: ACTIONS, INPUTS: INPUTS, CHANGES: CHANGES, SUBMITS: SUBMITS, SCREENS: SCREENS, go: go, render: render, ensureCatalog: ensureCatalog };
+  window.__DF = { S: S, ACTIONS: ACTIONS, INPUTS: INPUTS, CHANGES: CHANGES, SUBMITS: SUBMITS, SCREENS: SCREENS, go: go, render: render, ensureCatalog: ensureCatalog,
+    print: { io: PRINT_IO, escpos: escposReceipt, cfg: prnCfg } };
   boot();
 })();
 </script>
