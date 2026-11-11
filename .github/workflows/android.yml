@@ -67,6 +67,10 @@ jobs:
         with:
           gradle-version: '8.10.2'
 
+      - name: Versi APK dari package.json (mis. 1.7 + nomor build)
+        id: ver
+        run: echo "name=$(node -p "require('./package.json').version.split('.').slice(0,2).join('.')").${{ github.run_number }}" >> "$GITHUB_OUTPUT"
+
       - name: Build APK
         env:
           DF_KEYSTORE: ${{ runner.temp }}/release.keystore
@@ -75,7 +79,7 @@ jobs:
         run: |
           gradle -p android assembleRelease --no-daemon \
             -PtwaHost='${{ steps.url.outputs.host }}' -PtwaPath='${{ steps.url.outputs.path }}' \
-            -PversionCode='${{ github.run_number }}' -PversionName='1.5.${{ github.run_number }}'
+            -PversionCode='${{ github.run_number }}' -PversionName='${{ steps.ver.outputs.name }}'
 
       - name: Pastikan sidik jari APK = yang tercantum di assetlinks.json (web/pwa.config.json)
         run: |
@@ -89,7 +93,7 @@ jobs:
             echo "::error::Sidik jari berbeda. Kunci di Secrets bukan kunci yang sidik jarinya ada di web/pwa.config.json → twa.sha256."
             exit 1
           fi
-          mkdir -p out && cp "$APK" "out/DashFood-1.5.${{ github.run_number }}.apk"
+          mkdir -p out && cp "$APK" "out/DashFood-${{ steps.ver.outputs.name }}.apk"
 
       - uses: actions/upload-artifact@v4
         with:
@@ -99,10 +103,11 @@ jobs:
       - name: Terbitkan di Releases (unduh langsung dari HP)
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: apk-1.5.${{ github.run_number }}
-          name: Dash Food APK 1.5.${{ github.run_number }}
+          tag_name: apk-${{ steps.ver.outputs.name }}
+          name: Dash Food APK ${{ steps.ver.outputs.name }}
           body: |
             APK Dash Food (Trusted Web Activity) yang membuka https://${{ steps.url.outputs.host }}${{ steps.url.outputs.path }}
             Data tersimpan di Google Sheets lewat Apps Script — sama dengan PWA dan link /exec.
             Pasang: unduh file .apk di bawah dari HP → buka → izinkan "Instal aplikasi tidak dikenal" untuk browser/File.
+            Sudah punya versi lama? Cukup pasang di atasnya (data & login tetap). Login dengan akun Kasir → otomatis mode kasir.
           files: out/*.apk
